@@ -1,0 +1,36 @@
+name: Emergency Fix App
+
+on:
+  push:
+    paths:
+      - ".github/workflows/emergency_fix_app.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch app.py errors
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('app.py')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('T["market_price"]', 'T["market"]')
+          s = s.replace("T['market_price']", "T['market']")
+          s = s.replace('.stApp {{ background:var(--bg); color:var(--text); direction:{dir_}; }}', '.stApp {{ background:var(--bg); color:var(--text); }}')
+          s = s.replace('direction:{dir_}; }}', '}}')
+          s = s.replace('st.set_page_config(page_title="Iraqi Dinar Live", page_icon="🇮🇶", layout="wide")', 'st.set_page_config(page_title="Iraqi Dinar Live", page_icon="🇮🇶", layout="wide", initial_sidebar_state="collapsed")')
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add app.py
+          git commit -m "Emergency fix app.py errors" || echo "No changes"
+          git push
