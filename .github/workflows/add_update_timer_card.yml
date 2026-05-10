@@ -1,0 +1,84 @@
+name: Add Update Timer Card
+
+on:
+  push:
+    paths:
+      - ".github/workflows/add_update_timer_card.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Replace top white space with update timer
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('app.py')
+          s = p.read_text(encoding='utf-8')
+
+          # Remove the previous quick-card idea if it was applied.
+          s = re.sub(r'\n\.quick-card\{.*?\}\n(?=</style>)', '\n', s, flags=re.S)
+          s = re.sub(
+              r'\nst\.markdown\(\n\s*f\'\'\'\n\s*<div class=\\"quick-card\\">.*?unsafe_allow_html=True,\n\)\n',
+              '\n',
+              s,
+              flags=re.S,
+          )
+
+          css = '''
+.update-card{background:#ffffff;border:1px solid #e5eaf3;border-radius:26px;padding:20px 22px;margin:-8px 0 18px;box-shadow:0 12px 32px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:center;gap:22px;}
+.update-ring{width:86px;height:86px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(#0974e8 var(--progress),#d9e3f6 0);position:relative;flex:0 0 auto;}
+.update-ring::after{content:"";position:absolute;width:68px;height:68px;border-radius:50%;background:#fff;}
+.update-min{position:relative;z-index:2;font-size:30px;font-weight:800;color:#17213a;line-height:1;}
+.update-copy{font-size:24px;font-weight:700;color:#17213a;line-height:1.25;}
+.update-sub{font-size:13px;color:#657089;font-weight:700;margin-top:5px;}
+@media(max-width:768px){.update-card{padding:16px 14px;margin:-4px 0 14px;border-radius:22px;gap:14px;justify-content:flex-start}.update-ring{width:72px;height:72px}.update-ring::after{width:56px;height:56px}.update-min{font-size:24px}.update-copy{font-size:17px}.update-sub{font-size:12px}}
+'''
+          if '.update-card{' not in s:
+              s = s.replace('</style>', css + '\n</style>')
+
+          old = "st.markdown('<div class=\"main-card\">', unsafe_allow_html=True)\ntab_convert, tab_charts, tab_history, tab_alerts = st.tabs([T[\"converter\"], T[\"charts\"], T[\"history\"], T[\"alerts\"]])"
+          new = """st.markdown('<div class=\"main-card\">', unsafe_allow_html=True)
+
+minutes_display = min(age_min, 99)
+progress_value = min(100, max(6, int((minutes_display % 60) / 60 * 100)))
+st.markdown(
+    f'''
+    <div class="update-card">
+      <div class="update-ring" style="--progress:{progress_value}%">
+        <div class="update-min">{minutes_display}</div>
+      </div>
+      <div>
+        <div class="update-copy">{T['last']} {latest_time}</div>
+        <div class="update-sub">{T['source']}: PMCgroup • Auto-refresh every minute</div>
+      </div>
+    </div>
+    ''',
+    unsafe_allow_html=True,
+)
+
+tab_convert, tab_charts, tab_history, tab_alerts = st.tabs([T[\"converter\"], T[\"charts\"], T[\"history\"], T[\"alerts\"]])"""
+          if old in s and 'class="update-card"' not in s:
+              s = s.replace(old, new)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Verify syntax
+        run: python -m py_compile app.py
+
+      - name: Commit update timer
+        run: |
+          git config user.name github-actions
+          git config user.email actions@github.com
+          git add app.py
+          git commit -m "Replace white space with update timer card" || echo "No changes"
+          git push
