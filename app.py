@@ -68,33 +68,14 @@ market_difference = round(latest_usd - cbi_rate, 2)
 
 if len(df) > 1:
 
-    usd_change = round(
-        df["USD"].iloc[-1] - df["USD"].iloc[-2], 2
-    )
+    usd_change = round(df["USD"].iloc[-1] - df["USD"].iloc[-2], 2)
+    eur_change = round(df["EUR"].iloc[-1] - df["EUR"].iloc[-2], 2)
+    gbp_change = round(df["GBP"].iloc[-1] - df["GBP"].iloc[-2], 2)
+    try_change = round(df["TRY"].iloc[-1] - df["TRY"].iloc[-2], 2)
 
-    eur_change = round(
-        df["EUR"].iloc[-1] - df["EUR"].iloc[-2], 2
-    )
-
-    gbp_change = round(
-        df["GBP"].iloc[-1] - df["GBP"].iloc[-2], 2
-    )
-
-    try_change = round(
-        df["TRY"].iloc[-1] - df["TRY"].iloc[-2], 2
-    )
-
-    aed_change = round(
-        df["AED"].iloc[-1] - df["AED"].iloc[-2], 2
-    )
-
-    sar_change = round(
-        df["SAR"].iloc[-1] - df["SAR"].iloc[-2], 2
-    )
-
-    kwd_change = round(
-        df["KWD"].iloc[-1] - df["KWD"].iloc[-2], 2
-    )
+    aed_change = round(df["AED"].iloc[-1] - df["AED"].iloc[-2], 2)
+    sar_change = round(df["SAR"].iloc[-1] - df["SAR"].iloc[-2], 2)
+    kwd_change = round(df["KWD"].iloc[-1] - df["KWD"].iloc[-2], 2)
 
 else:
 
@@ -102,6 +83,7 @@ else:
     eur_change = 0
     gbp_change = 0
     try_change = 0
+
     aed_change = 0
     sar_change = 0
     kwd_change = 0
