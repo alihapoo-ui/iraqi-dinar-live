@@ -257,7 +257,7 @@ div[data-testid="metric-container"] [data-testid="stMetricValue"] {
 # =========================
 
 st.sidebar.markdown("## 🇮🇶 IQD Live")
-st.sidebar.markdown("Live market dashboard powered by PMC Telegram data.")
+st.sidebar.markdown("Live market dashboard powered by Salar data.")
 st.sidebar.markdown("---")
 
 page = st.sidebar.radio(
