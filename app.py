@@ -1,4 +1,3 @@
-import io
 from datetime import datetime
 
 import altair as alt
@@ -6,776 +5,320 @@ import pandas as pd
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
-# =====================================================
-# PAGE CONFIG
-# =====================================================
+st.set_page_config(page_title="Iraqi Dinar Live", page_icon="🇮🇶", layout="wide")
+st_autorefresh(interval=60_000, key="refresh")
 
-st.set_page_config(
-    page_title="Iraqi Dinar Live",
-    page_icon="🇮🇶",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-st_autorefresh(interval=60_000, key="iqd_auto_refresh")
-
-# =====================================================
-# CONSTANTS
-# =====================================================
-
-CURRENCIES = {
-    "USD": {"flag": "🇺🇸", "name": "US Dollar", "unit": "per 1 USD"},
-    "EUR": {"flag": "🇪🇺", "name": "Euro", "unit": "per 1 EUR"},
-    "GBP": {"flag": "🇬🇧", "name": "British Pound", "unit": "per 1 GBP"},
-    "TRY": {"flag": "🇹🇷", "name": "Turkish Lira", "unit": "per 1 TRY"},
-    "AED": {"flag": "🇦🇪", "name": "UAE Dirham", "unit": "per 1 AED"},
-    "SAR": {"flag": "🇸🇦", "name": "Saudi Riyal", "unit": "per 1 SAR"},
-    "KWD": {"flag": "🇰🇼", "name": "Kuwaiti Dinar", "unit": "per 1 KWD"},
+# -------------------------
+# Languages
+# -------------------------
+LANGS = {
+    "English": {"flag": "🇬🇧", "dir": "ltr", "code": "en"},
+    "العربية": {"flag": "🇮🇶", "dir": "rtl", "code": "ar"},
+    "کوردی": {"flag": "☀️", "dir": "rtl", "code": "ku"},
 }
 
-MARKET_COLUMNS = ["Time", "USD", "EUR", "GBP", "TRY", "AED", "SAR", "KWD", "Market", "Buy", "Sell"]
+TEXT = {
+    "en": {
+        "title": "Iraqi Dinar live exchange rates",
+        "subtitle": "Real Iraqi market USD/IQD rates, buy/sell prices, charts, and currency conversion.",
+        "nav": "Navigation", "dashboard": "Dashboard", "history": "Historical Data", "converter": "Currency Converter",
+        "language": "Language", "last": "Last update", "source": "Source", "live": "Live market data",
+        "convert": "Convert", "rates": "Rates", "charts": "Charts", "alerts": "Alerts",
+        "amount": "Amount", "from": "From currency", "to": "To IQD", "result": "Converted value",
+        "market_ref": "Market reference from PMCgroup", "market": "Market", "buy": "Buy USD", "sell": "Sell USD",
+        "overview": "Market overview", "live_rates": "Live exchange rates", "search": "Search currency",
+        "stats": "Market statistics", "highest": "Highest", "lowest": "Lowest", "average": "Average", "records": "Records",
+        "chart": "Market chart", "period": "Period", "chart_type": "Chart type", "area": "Area", "line": "Line",
+        "historical_records": "Historical market records", "currency": "Currency", "download": "Download CSV",
+        "historical_chart": "Historical chart", "advanced_converter": "Advanced converter", "convert_now": "Convert now",
+        "converted_value": "Converted value", "quick": "Quick USD values", "alert": "Alert level",
+        "up": "Market up", "down": "Market down", "stable": "Market stable",
+        "per_100": "IQD per 100 USD", "per_1": "IQD per 1",
+        "footer": "Rates are informational and may vary by exchange office, spread, and timing.",
+    },
+    "ar": {
+        "title": "أسعار صرف الدينار العراقي مباشرة",
+        "subtitle": "سعر السوق للدولار مقابل الدينار، أسعار البيع والشراء، الرسوم البيانية، وتحويل العملات.",
+        "nav": "القائمة", "dashboard": "الرئيسية", "history": "السجل التاريخي", "converter": "محول العملات",
+        "language": "اللغة", "last": "آخر تحديث", "source": "المصدر", "live": "بيانات السوق مباشرة",
+        "convert": "تحويل", "rates": "الأسعار", "charts": "الرسوم", "alerts": "التنبيهات",
+        "amount": "المبلغ", "from": "من العملة", "to": "إلى الدينار العراقي", "result": "القيمة المحولة",
+        "market_ref": "سعر السوق من PMCgroup", "market": "السوق", "buy": "شراء الدولار", "sell": "بيع الدولار",
+        "overview": "نظرة عامة على السوق", "live_rates": "أسعار العملات المباشرة", "search": "بحث عن عملة",
+        "stats": "إحصائيات السوق", "highest": "الأعلى", "lowest": "الأدنى", "average": "المعدل", "records": "السجلات",
+        "chart": "رسم السوق", "period": "الفترة", "chart_type": "نوع الرسم", "area": "مساحة", "line": "خط",
+        "historical_records": "سجلات السوق التاريخية", "currency": "العملة", "download": "تحميل CSV",
+        "historical_chart": "الرسم التاريخي", "advanced_converter": "محول متقدم", "convert_now": "حوّل الآن",
+        "converted_value": "القيمة المحولة", "quick": "قيم سريعة بالدولار", "alert": "مستوى التنبيه",
+        "up": "السوق ارتفع", "down": "السوق انخفض", "stable": "السوق مستقر",
+        "per_100": "دينار لكل 100 دولار", "per_1": "دينار لكل 1",
+        "footer": "الأسعار معلوماتية وقد تختلف حسب مكتب الصرافة والسبريد والتوقيت.",
+    },
+    "ku": {
+        "title": "نرخی ڕاستەوخۆی دیناری عێراقی",
+        "subtitle": "نرخی بازاڕی دۆلار/دینار، کڕین و فرۆشتن، چارت و گۆڕینی دراو.",
+        "nav": "ڕێنیشاندەر", "dashboard": "داشبۆرد", "history": "داتای مێژوویی", "converter": "گۆڕینی دراو",
+        "language": "زمان", "last": "دوایین نوێکردنەوە", "source": "سەرچاوە", "live": "داتای ڕاستەوخۆی بازاڕ",
+        "convert": "گۆڕین", "rates": "نرخەکان", "charts": "چارتەکان", "alerts": "ئاگادارکردنەوە",
+        "amount": "بڕ", "from": "لە دراو", "to": "بۆ دیناری عێراقی", "result": "بەهای گۆڕاو",
+        "market_ref": "نرخی بازاڕ لە PMCgroup", "market": "بازاڕ", "buy": "کڕینی دۆلار", "sell": "فرۆشتنی دۆلار",
+        "overview": "پوختەی بازاڕ", "live_rates": "نرخی ڕاستەوخۆی دراوەکان", "search": "گەڕان بۆ دراو",
+        "stats": "ئاماری بازاڕ", "highest": "بەرزترین", "lowest": "نزمترین", "average": "تێکڕا", "records": "تۆمارەکان",
+        "chart": "چارتى بازاڕ", "period": "ماوە", "chart_type": "جۆری چارت", "area": "ناوچە", "line": "هێڵ",
+        "historical_records": "تۆمارە مێژووییەکانی بازاڕ", "currency": "دراو", "download": "داگرتنی CSV",
+        "historical_chart": "چارتى مێژوویی", "advanced_converter": "گۆڕینی پێشکەوتوو", "convert_now": "ئێستا گۆڕە",
+        "converted_value": "بەهای گۆڕاو", "quick": "بەها خێراکانی دۆلار", "alert": "ئاستی ئاگادارکردنەوە",
+        "up": "بازاڕ بەرزبووەوە", "down": "بازاڕ دابەزیوە", "stable": "بازاڕ جێگیرە",
+        "per_100": "دینار بۆ 100 دۆلار", "per_1": "دینار بۆ 1",
+        "footer": "نرخەکان زانیاریین و دەتوانن بە پێی صرافە و کات جیاواز بن.",
+    },
+}
 
-# =====================================================
-# DATA
-# =====================================================
+CURRENCY_FLAGS = {"USD": "🇺🇸", "EUR": "🇪🇺", "GBP": "🇬🇧", "TRY": "🇹🇷", "AED": "🇦🇪", "SAR": "🇸🇦", "KWD": "🇰🇼"}
+CURRENCY_NAMES = {
+    "en": {"USD": "US Dollar", "EUR": "Euro", "GBP": "British Pound", "TRY": "Turkish Lira", "AED": "UAE Dirham", "SAR": "Saudi Riyal", "KWD": "Kuwaiti Dinar"},
+    "ar": {"USD": "الدولار الأمريكي", "EUR": "اليورو", "GBP": "الجنيه الإسترليني", "TRY": "الليرة التركية", "AED": "الدرهم الإماراتي", "SAR": "الريال السعودي", "KWD": "الدينار الكويتي"},
+    "ku": {"USD": "دۆلاری ئەمریکی", "EUR": "یۆرۆ", "GBP": "پاوەندی بەریتانی", "TRY": "لیرەی تورکی", "AED": "دەرەمی ئیمارات", "SAR": "ڕیالی سعودی", "KWD": "دیناری کوەیتی"},
+}
+CURRENCIES = list(CURRENCY_FLAGS.keys())
+COLUMNS = ["Time", "USD", "EUR", "GBP", "TRY", "AED", "SAR", "KWD", "Market", "Buy", "Sell"]
+
+st.sidebar.markdown("## 🌐 Language")
+lang_label = st.sidebar.radio(
+    "Language / اللغة / زمان",
+    list(LANGS.keys()),
+    format_func=lambda x: f"{LANGS[x]['flag']} {x}",
+    key="lang",
+)
+code = LANGS[lang_label]["code"]
+dir_ = LANGS[lang_label]["dir"]
+T = TEXT[code]
 
 @st.cache_data(ttl=55)
 def load_data() -> pd.DataFrame:
     df = pd.read_csv("usd_history.csv")
-
-    missing = [col for col in MARKET_COLUMNS if col not in df.columns]
+    missing = [c for c in COLUMNS if c not in df.columns]
     if missing:
-        raise ValueError(f"Missing columns in usd_history.csv: {', '.join(missing)}")
-
+        raise ValueError("Missing columns: " + ", ".join(missing))
     df["Time"] = pd.to_datetime(df["Time"], errors="coerce")
-
-    for col in MARKET_COLUMNS:
-        if col != "Time":
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-
+    for c in COLUMNS:
+        if c != "Time":
+            df[c] = pd.to_numeric(df[c], errors="coerce")
     df = df.dropna(subset=["Time", "USD", "Market", "Buy", "Sell"])
-    df = df.sort_values("Time").drop_duplicates(subset=["Time"], keep="last").reset_index(drop=True)
-
-    return df
-
-
-def get_latest_valid_row(df: pd.DataFrame) -> pd.Series:
-    """Avoid showing old bad FX rows as latest foreign rates."""
-    valid = df.copy()
-
-    checks = (
-        valid["USD"].between(1000, 2500)
-        & valid["Market"].between(100000, 250000)
-        & valid["EUR"].between(500, 4000)
-        & valid["GBP"].between(500, 5000)
-        & valid["TRY"].between(1, 500)
-        & valid["AED"].between(100, 1000)
-        & valid["SAR"].between(100, 1000)
-        & valid["KWD"].between(1000, 10000)
-    )
-
-    valid = valid[checks]
-    if not valid.empty:
-        return valid.iloc[-1]
-
-    return df.iloc[-1]
-
-
-def filter_period(df: pd.DataFrame, period: str) -> pd.DataFrame:
-    if period == "24h":
-        cutoff = df["Time"].max() - pd.Timedelta(hours=24)
-    elif period == "7d":
-        cutoff = df["Time"].max() - pd.Timedelta(days=7)
-    elif period == "30d":
-        cutoff = df["Time"].max() - pd.Timedelta(days=30)
-    else:
-        return df.copy()
-
-    filtered = df[df["Time"] >= cutoff].copy()
-    return filtered if not filtered.empty else df.copy()
-
-
-@st.cache_data(ttl=55)
-def to_csv_bytes(data: pd.DataFrame) -> bytes:
-    return data.to_csv(index=False).encode("utf-8")
-
+    df = df.sort_values("Time").drop_duplicates(subset=["Time"], keep="last")
+    clean = df[
+        df["USD"].between(1000, 2500)
+        & df["Market"].between(100000, 250000)
+        & df["EUR"].between(500, 4000)
+        & df["GBP"].between(500, 5000)
+        & df["TRY"].between(1, 500)
+        & df["AED"].between(100, 1000)
+        & df["SAR"].between(100, 1000)
+        & df["KWD"].between(1000, 10000)
+    ]
+    return clean.reset_index(drop=True) if not clean.empty else df.reset_index(drop=True)
 
 try:
     df = load_data()
 except Exception as exc:
     st.error(f"Could not load usd_history.csv: {exc}")
     st.stop()
-
 if df.empty:
-    st.error("No market data found. Run the GitHub Actions update workflow first.")
+    st.error("No market data found. Run GitHub Actions first.")
     st.stop()
 
-latest = get_latest_valid_row(df)
+latest = df.iloc[-1]
 latest_time = latest["Time"].strftime("%Y-%m-%d %H:%M")
 latest_market = float(latest["Market"])
 latest_buy = float(latest["Buy"])
 latest_sell = float(latest["Sell"])
 latest_usd = float(latest["USD"])
+change = latest_market - float(df["Market"].iloc[-2]) if len(df) >= 2 else 0.0
 
-if len(df) >= 2:
-    previous_market = float(df["Market"].iloc[-2])
-    market_change = latest_market - previous_market
+if change > 0:
+    trend = f"📈 {T['up']} {change:,.0f} IQD"; trend_class = "trend-up"
+elif change < 0:
+    trend = f"📉 {T['down']} {abs(change):,.0f} IQD"; trend_class = "trend-down"
 else:
-    market_change = 0.0
-
-if market_change > 0:
-    trend_label = f"Market up by {market_change:,.0f} IQD"
-    trend_badge = "📈 Up"
-    trend_class = "trend-up"
-elif market_change < 0:
-    trend_label = f"Market down by {abs(market_change):,.0f} IQD"
-    trend_badge = "📉 Down"
-    trend_class = "trend-down"
-else:
-    trend_label = "Market is stable"
-    trend_badge = "● Stable"
-    trend_class = "trend-neutral"
-
-# =====================================================
-# STYLE
-# =====================================================
-
-st.markdown(
-    """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-:root {
-    --iqd-blue: #07145f;
-    --iqd-blue-2: #0b5fe8;
-    --iqd-text: #13213c;
-    --iqd-muted: #667085;
-    --iqd-border: #e4eaf3;
-    --iqd-bg: #f5f7fb;
-    --iqd-card: #ffffff;
-    --iqd-green: #12a05c;
-    --iqd-red: #d92d20;
-    --iqd-yellow: #b7791f;
-}
-
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-}
-
-.stApp {
-    background: var(--iqd-bg);
-    color: var(--iqd-text);
-}
-
-.block-container {
-    padding-top: 0rem !important;
-    padding-left: 3rem !important;
-    padding-right: 3rem !important;
-    max-width: 1320px !important;
-}
-
-section[data-testid="stSidebar"] {
-    background: #ffffff !important;
-    border-right: 1px solid var(--iqd-border);
-}
-
-section[data-testid="stSidebar"] * {
-    color: var(--iqd-text) !important;
-}
-
-.hero {
-    background: linear-gradient(135deg, #07145f 0%, #0b1f7a 60%, #081139 100%);
-    margin-left: -3rem;
-    margin-right: -3rem;
-    padding: 28px 3rem 118px 3rem;
-    color: #fff;
-    position: relative;
-    overflow: hidden;
-}
-
-.hero::before {
-    content: "";
-    position: absolute;
-    width: 720px;
-    height: 720px;
-    border-radius: 999px;
-    background: radial-gradient(circle, rgba(31,119,255,.22) 0%, rgba(31,119,255,.06) 42%, transparent 70%);
-    right: -180px;
-    top: -300px;
-}
-
-.hero::after {
-    content: "";
-    position: absolute;
-    left: -10%;
-    right: -10%;
-    bottom: -76px;
-    height: 135px;
-    background: var(--iqd-bg);
-    border-radius: 50% 50% 0 0;
-}
-
-.hero-inner {
-    max-width: 1120px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 2;
-}
-
-.navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 46px;
-}
-
-.brand {
-    font-size: 28px;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-}
-
-.navlinks span {
-    margin-left: 26px;
-    color: #e7eeff;
-    font-weight: 800;
-    font-size: 14px;
-}
-
-.hero-title {
-    text-align: center;
-    font-size: clamp(32px, 5vw, 54px);
-    line-height: 1.05;
-    font-weight: 900;
-    letter-spacing: -0.06em;
-    margin-bottom: 14px;
-}
-
-.hero-subtitle {
-    text-align: center;
-    color: #dbe7ff;
-    font-size: 18px;
-    font-weight: 500;
-}
-
-.live-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    border-radius: 999px;
-    background: rgba(255,255,255,.12);
-    border: 1px solid rgba(255,255,255,.18);
-    color: #dbe7ff;
-    font-weight: 800;
-    font-size: 13px;
-    margin-bottom: 18px;
-}
-
-.dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: #22c55e;
-    box-shadow: 0 0 0 5px rgba(34,197,94,.16);
-}
-
-.converter-card {
-    background: #ffffff;
-    border: 1px solid var(--iqd-border);
-    border-radius: 30px;
-    padding: 28px;
-    margin-top: -78px;
-    box-shadow: 0 30px 70px rgba(15, 23, 42, .14);
-    position: relative;
-    z-index: 10;
-}
-
-.card-title {
-    font-size: 18px;
-    font-weight: 900;
-    color: var(--iqd-text);
-    margin-bottom: 4px;
-}
-
-.card-subtitle {
-    color: var(--iqd-muted);
-    font-size: 13px;
-    margin-bottom: 18px;
-}
-
-.section-title {
-    color: var(--iqd-text);
-    font-size: 28px;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    margin: 38px 0 16px 0;
-}
-
-.small-note {
-    color: var(--iqd-muted);
-    font-size: 13px;
-}
-
-.big-result {
-    color: #07145f;
-    font-size: clamp(24px, 4vw, 36px);
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    margin-top: 12px;
-}
-
-.trend-card {
-    padding: 16px 20px;
-    border-radius: 18px;
-    font-weight: 900;
-    margin: 18px 0;
-}
-
-.trend-up {
-    background: #e8f8ef;
-    color: var(--iqd-green);
-    border: 1px solid #b7ebce;
-}
-
-.trend-down {
-    background: #fff1f0;
-    color: var(--iqd-red);
-    border: 1px solid #ffc9c4;
-}
-
-.trend-neutral {
-    background: #fff8e6;
-    color: var(--iqd-yellow);
-    border: 1px solid #f6d98b;
-}
-
-.rate-card {
-    background: #ffffff;
-    border: 1px solid var(--iqd-border);
-    border-radius: 18px;
-    padding: 17px 20px;
-    margin-bottom: 10px;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, .05);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.rate-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.flag {
-    font-size: 28px;
-}
-
-.rate-name {
-    font-weight: 900;
-    color: var(--iqd-text);
-}
-
-.rate-code {
-    font-size: 12px;
-    color: var(--iqd-muted);
-    font-weight: 700;
-}
-
-.rate-value {
-    color: var(--iqd-blue-2);
-    font-weight: 900;
-    font-size: 18px;
-    text-align: right;
-}
-
-.rate-unit {
-    color: var(--iqd-muted);
-    font-size: 12px;
-    text-align: right;
-}
-
-.panel {
-    background: #ffffff;
-    border: 1px solid var(--iqd-border);
-    border-radius: 22px;
-    padding: 22px;
-    box-shadow: 0 10px 26px rgba(15,23,42,.06);
-}
-
-.chart-card {
-    background: #ffffff;
-    border: 1px solid var(--iqd-border);
-    border-radius: 22px;
-    padding: 20px;
-    box-shadow: 0 10px 26px rgba(15,23,42,.06);
-}
-
-.footer {
-    text-align: center;
-    color: var(--iqd-muted);
-    font-size: 13px;
-    padding: 44px 0 30px 0;
-}
-
-/* Streamlit widgets */
-div[data-testid="metric-container"] {
-    background: #ffffff;
-    border: 1px solid var(--iqd-border);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 10px 26px rgba(15,23,42,.06);
-}
-
-div[data-testid="metric-container"] label {
-    color: var(--iqd-muted) !important;
-    font-weight: 800 !important;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    font-size: .78rem !important;
-}
-
-div[data-testid="metric-container"] [data-testid="stMetricValue"] {
-    color: var(--iqd-text) !important;
-    font-weight: 900 !important;
-    font-size: 1.85rem !important;
-}
-
-.stTabs [data-baseweb="tab-list"] {
-    gap: 8px;
-    background: #f8fafc;
-    border: 1px solid var(--iqd-border);
-    padding: 8px;
-    border-radius: 999px;
-}
-
-.stTabs [data-baseweb="tab"] {
-    border-radius: 999px;
-    padding: 10px 20px;
-    font-weight: 900;
-}
-
-.stTabs [aria-selected="true"] {
-    background: #263a5f !important;
-    color: #ffffff !important;
-}
-
-.stButton > button,
-.stDownloadButton > button {
-    border-radius: 12px !important;
-    font-weight: 900 !important;
-    border: 1px solid var(--iqd-border) !important;
-}
-
-.stButton > button[kind="primary"],
-.stDownloadButton > button[kind="primary"] {
-    background: #0b74e5 !important;
-    color: white !important;
-}
-
-@media (max-width: 768px) {
-    .block-container {
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }
-
-    .hero {
-        margin-left: -1rem;
-        margin-right: -1rem;
-        padding: 24px 1rem 100px 1rem;
-    }
-
-    .navbar {
-        display: block;
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .navlinks {
-        display: none;
-    }
-
-    .converter-card {
-        padding: 18px;
-        border-radius: 22px;
-    }
-
-    .rate-card {
-        display: block;
-    }
-
-    .rate-value,
-    .rate-unit {
-        text-align: left;
-        margin-top: 8px;
-    }
-}
-</style>
-""",
-    unsafe_allow_html=True,
-)
-
-# =====================================================
-# SIDEBAR
-# =====================================================
-
-st.sidebar.markdown("## 🇮🇶 IQD Live")
-st.sidebar.markdown("Live Iraqi market exchange rates powered by PMCgroup.")
-st.sidebar.divider()
-
-page = st.sidebar.radio(
-    "Navigation",
-    ["Dashboard", "Historical Data", "Currency Converter"],
-    key="main_navigation",
-)
-
-st.sidebar.divider()
-st.sidebar.markdown(f"**Last update:**  \n{latest_time}")
-st.sidebar.markdown("**Source:** PMCgroup")
-st.sidebar.caption("Rates may vary by exchange office and timing.")
-
-# =====================================================
-# HERO
-# =====================================================
-
-st.markdown(
-    f"""
-<div class="hero">
-  <div class="hero-inner">
-    <div class="navbar">
-      <div class="brand">IQD Live</div>
-      <div class="navlinks">
-        <span>Converter</span>
-        <span>Rates</span>
-        <span>Charts</span>
-        <span>History</span>
-      </div>
-    </div>
-    <div style="text-align:center;">
-      <span class="live-pill"><span class="dot"></span> Live market data • {latest_time}</span>
-    </div>
-    <div class="hero-title">Iraqi Dinar live exchange rates</div>
-    <div class="hero-subtitle">Real USD/IQD market rate, buy/sell prices, live charts, and currency conversion.</div>
-  </div>
-</div>
-""",
-    unsafe_allow_html=True,
-)
-
-# =====================================================
-# MAIN CONVERTER CARD - REAL STREAMLIT WIDGETS
-# =====================================================
-
-with st.container():
-    st.markdown('<div class="converter-card">', unsafe_allow_html=True)
-    st.markdown('<div class="card-title">Currency converter</div>', unsafe_allow_html=True)
-    st.markdown('<div class="card-subtitle">Editable amount and currency. No fake HTML buttons.</div>', unsafe_allow_html=True)
-
-    convert_tab, rates_tab, chart_tab, alerts_tab = st.tabs(["Convert", "Rates", "Charts", "Alerts"])
-
-    with convert_tab:
-        c1, c2, c3 = st.columns([1.1, 1.0, 1.2])
-
-        with c1:
-            amount = st.number_input(
-                "Amount",
-                min_value=1.0,
-                value=100.0,
-                step=10.0,
-                key="hero_amount",
-            )
-
-        with c2:
-            currency = st.selectbox(
-                "From currency",
-                list(CURRENCIES.keys()),
-                index=0,
-                key="hero_currency",
-            )
-
-        with c3:
-            rate = float(latest[currency])
-            result = amount * rate
-            st.metric("To IQD", f"{result:,.0f} IQD")
-
-        st.markdown(
-            f"""
-<div class="big-result">{amount:,.2f} {currency} = {result:,.0f} IQD</div>
-<div class="small-note">Market reference from PMCgroup • Updated {latest_time}</div>
-""",
-            unsafe_allow_html=True,
-        )
-
-    with rates_tab:
-        st.caption("Main USD/IQD market reference per 100 USD.")
-        r1, r2, r3 = st.columns(3)
-        r1.metric("Market", f"{latest_market:,.0f} IQD", f"{market_change:,.0f} IQD")
-        r2.metric("Buy USD", f"{latest_buy:,.0f} IQD")
-        r3.metric("Sell USD", f"{latest_sell:,.0f} IQD")
-
-    with chart_tab:
-        mini_period = st.selectbox("Mini chart period", ["24h", "7d", "30d", "All"], index=2, key="hero_chart_period")
-        mini_df = filter_period(df, mini_period)
-        st.altair_chart(
-            alt.Chart(mini_df)
-            .mark_area(color="#0B74E5", opacity=0.18, line={"color": "#0B74E5", "strokeWidth": 3})
-            .encode(
-                x=alt.X("Time:T", title=None),
-                y=alt.Y("Market:Q", title="IQD per 100 USD", scale=alt.Scale(zero=False)),
-                tooltip=[
-                    alt.Tooltip("Time:T", title="Time", format="%Y-%m-%d %H:%M"),
-                    alt.Tooltip("Market:Q", title="Market", format=",.0f"),
-                ],
-            )
-            .properties(height=260)
-            .interactive(),
-            use_container_width=True,
-        )
-
-    with alerts_tab:
-        alert_target = st.number_input("Alert level for market price", value=float(round(latest_market, 0)), step=250.0)
-        if latest_market >= alert_target:
-            st.error(f"Alert: market is {latest_market:,.0f} IQD, above {alert_target:,.0f} IQD")
-        else:
-            st.success(f"Market is below your alert level: {alert_target:,.0f} IQD")
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# =====================================================
-# CHART HELPER
-# =====================================================
-
-def market_chart(data: pd.DataFrame, y_col: str = "Market", chart_type: str = "Area"):
-    label = "IQD per 100 USD" if y_col == "Market" else f"IQD per 1 {y_col}"
+    trend = f"● {T['stable']}"; trend_class = "trend-neutral"
+
+def filter_period(data: pd.DataFrame, period: str) -> pd.DataFrame:
+    if period == "24h":
+        cutoff = data["Time"].max() - pd.Timedelta(hours=24)
+    elif period == "7d":
+        cutoff = data["Time"].max() - pd.Timedelta(days=7)
+    elif period == "30d":
+        cutoff = data["Time"].max() - pd.Timedelta(days=30)
+    else:
+        return data.copy()
+    out = data[data["Time"] >= cutoff].copy()
+    return out if not out.empty else data.copy()
+
+@st.cache_data(ttl=55)
+def csv_bytes(data: pd.DataFrame) -> bytes:
+    return data.to_csv(index=False).encode("utf-8")
+
+def make_chart(data: pd.DataFrame, y_col: str, chart_type: str):
     base = alt.Chart(data).encode(
         x=alt.X("Time:T", title=None, axis=alt.Axis(labelColor="#667085", gridColor="#f1f5f9")),
-        y=alt.Y(f"{y_col}:Q", title=label, scale=alt.Scale(zero=False), axis=alt.Axis(labelColor="#667085", gridColor="#f1f5f9")),
-        tooltip=[
-            alt.Tooltip("Time:T", title="Time", format="%Y-%m-%d %H:%M"),
-            alt.Tooltip(f"{y_col}:Q", title=y_col, format=",.2f"),
-        ],
+        y=alt.Y(f"{y_col}:Q", title=y_col, scale=alt.Scale(zero=False), axis=alt.Axis(labelColor="#667085", gridColor="#f1f5f9")),
+        tooltip=[alt.Tooltip("Time:T", title="Time", format="%Y-%m-%d %H:%M"), alt.Tooltip(f"{y_col}:Q", title=y_col, format=",.2f")],
     )
-
-    if chart_type == "Line":
+    if chart_type == T["line"] or chart_type == "Line":
         chart = base.mark_line(color="#0B74E5", strokeWidth=3)
     else:
         chart = base.mark_area(color="#0B74E5", opacity=0.16, line={"color": "#0B74E5", "strokeWidth": 3})
-
     return chart.properties(height=380).configure_view(strokeWidth=0).interactive()
 
-# =====================================================
-# PAGES
-# =====================================================
+st.markdown(f"""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+:root {{ --blue:#07145f; --blue2:#0b74e5; --text:#13213c; --muted:#667085; --border:#e4eaf3; --bg:#f5f7fb; --green:#12a05c; --red:#d92d20; --yellow:#b7791f; }}
+html, body, [class*="css"] {{ font-family:'Inter',sans-serif; }}
+.stApp {{ background:var(--bg); color:var(--text); direction:{dir_}; }}
+.block-container {{ padding-top:0!important; padding-left:3rem!important; padding-right:3rem!important; max-width:1320px!important; }}
+section[data-testid="stSidebar"] {{ background:#fff!important; border-right:1px solid var(--border); }}
+section[data-testid="stSidebar"] * {{ color:var(--text)!important; }}
+.hero {{ background:linear-gradient(135deg,#07145f 0%,#0b1f7a 60%,#081139 100%); margin-left:-3rem; margin-right:-3rem; padding:28px 3rem 118px; color:#fff; position:relative; overflow:hidden; direction:{dir_}; }}
+.hero::after {{ content:""; position:absolute; left:-10%; right:-10%; bottom:-76px; height:135px; background:var(--bg); border-radius:50% 50% 0 0; }}
+.hero-inner {{ max-width:1120px; margin:0 auto; position:relative; z-index:2; }}
+.navbar {{ display:flex; align-items:center; justify-content:space-between; margin-bottom:46px; }}
+.brand {{ font-size:28px; font-weight:900; letter-spacing:-.04em; }}
+.navlinks span {{ margin-left:26px; color:#e7eeff; font-weight:800; font-size:14px; }}
+.hero-title {{ text-align:center; font-size:clamp(32px,5vw,54px); line-height:1.05; font-weight:900; letter-spacing:-.06em; margin-bottom:14px; }}
+.hero-subtitle {{ text-align:center; color:#dbe7ff; font-size:18px; font-weight:500; }}
+.live-pill {{ display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); color:#dbe7ff; font-weight:800; font-size:13px; margin-bottom:18px; }}
+.dot {{ width:8px; height:8px; border-radius:999px; background:#22c55e; box-shadow:0 0 0 5px rgba(34,197,94,.16); }}
+.converter-card,.chart-card {{ background:#fff; border:1px solid var(--border); box-shadow:0 16px 36px rgba(15,23,42,.08); }}
+.converter-card {{ border-radius:30px; padding:28px; margin-top:-78px; position:relative; z-index:10; direction:{dir_}; }}
+.chart-card {{ border-radius:22px; padding:22px; }}
+.card-title {{ font-size:18px; font-weight:900; color:var(--text); margin-bottom:4px; }}
+.card-subtitle,.small-note {{ color:var(--muted); font-size:13px; }}
+.section-title {{ color:var(--text); font-size:28px; font-weight:900; letter-spacing:-.04em; margin:38px 0 16px; }}
+.big-result {{ color:#07145f; font-size:clamp(24px,4vw,36px); font-weight:900; letter-spacing:-.04em; margin-top:12px; }}
+.trend-card {{ padding:16px 20px; border-radius:18px; font-weight:900; margin:18px 0; }}
+.trend-up {{ background:#e8f8ef; color:var(--green); border:1px solid #b7ebce; }}
+.trend-down {{ background:#fff1f0; color:var(--red); border:1px solid #ffc9c4; }}
+.trend-neutral {{ background:#fff8e6; color:var(--yellow); border:1px solid #f6d98b; }}
+.rate-card {{ background:#fff; border:1px solid var(--border); border-radius:18px; padding:17px 20px; margin-bottom:10px; box-shadow:0 8px 20px rgba(15,23,42,.05); display:flex; align-items:center; justify-content:space-between; }}
+.rate-left {{ display:flex; align-items:center; gap:12px; }} .flag {{ font-size:28px; }} .rate-name {{ font-weight:900; color:var(--text); }} .rate-code,.rate-unit {{ font-size:12px; color:var(--muted); font-weight:700; }} .rate-value {{ color:var(--blue2); font-weight:900; font-size:18px; text-align:right; }}
+div[data-testid="metric-container"] {{ background:#fff; border:1px solid var(--border); border-radius:20px; padding:20px; box-shadow:0 10px 26px rgba(15,23,42,.06); }}
+div[data-testid="metric-container"] label {{ color:var(--muted)!important; font-weight:800!important; text-transform:uppercase; letter-spacing:.04em; font-size:.78rem!important; }}
+div[data-testid="metric-container"] [data-testid="stMetricValue"] {{ color:var(--text)!important; font-weight:900!important; font-size:1.85rem!important; }}
+.stTabs [data-baseweb="tab-list"] {{ gap:8px; background:#f8fafc; border:1px solid var(--border); padding:8px; border-radius:999px; }}
+.stTabs [data-baseweb="tab"] {{ border-radius:999px; padding:10px 20px; font-weight:900; }}
+.stTabs [aria-selected="true"] {{ background:#263a5f!important; color:#fff!important; }}
+.footer {{ text-align:center; color:var(--muted); font-size:13px; padding:44px 0 30px; }}
+@media(max-width:768px){{ .block-container{{padding-left:1rem!important;padding-right:1rem!important}} .hero{{margin-left:-1rem;margin-right:-1rem;padding:24px 1rem 100px}} .navbar{{display:block;text-align:center;margin-bottom:30px}} .navlinks{{display:none}} .converter-card{{padding:18px;border-radius:22px}} .rate-card{{display:block}} .rate-value,.rate-unit{{text-align:left;margin-top:8px}} }}
+</style>
+""", unsafe_allow_html=True)
 
-if page == "Dashboard":
-    st.markdown('<div class="section-title">Market overview</div>', unsafe_allow_html=True)
+st.sidebar.markdown(f"## 🇮🇶 IQD Live")
+st.sidebar.markdown(T["footer"])
+st.sidebar.divider()
+page_map = {T["dashboard"]: "dashboard", T["history"]: "history", T["converter"]: "converter"}
+page_label = st.sidebar.radio(T["nav"], list(page_map.keys()), key="nav")
+page = page_map[page_label]
+st.sidebar.divider()
+st.sidebar.markdown(f"**{T['last']}:**  \n{latest_time}")
+st.sidebar.markdown(f"**{T['source']}:** PMCgroup")
 
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Market Price", f"{latest_market:,.0f} IQD", f"{market_change:,.0f} IQD")
-    m2.metric("Buy USD", f"{latest_buy:,.0f} IQD")
-    m3.metric("Sell USD", f"{latest_sell:,.0f} IQD")
+st.markdown(f"""
+<div class="hero"><div class="hero-inner"><div class="navbar"><div class="brand">IQD Live</div><div class="navlinks"><span>{T['converter']}</span><span>{T['rates']}</span><span>{T['charts']}</span><span>{T['history']}</span></div></div><div style="text-align:center;"><span class="live-pill"><span class="dot"></span> {T['live']} • {latest_time}</span></div><div class="hero-title">{T['title']}</div><div class="hero-subtitle">{T['subtitle']}</div></div></div>
+""", unsafe_allow_html=True)
 
-    st.markdown(f'<div class="trend-card {trend_class}">{trend_badge} — {trend_label}</div>', unsafe_allow_html=True)
+st.markdown('<div class="converter-card">', unsafe_allow_html=True)
+st.markdown(f'<div class="card-title">{T["converter"]}</div><div class="card-subtitle">{T["market_ref"]}</div>', unsafe_allow_html=True)
+convert_tab, rates_tab, chart_tab, alerts_tab = st.tabs([T["convert"], T["rates"], T["charts"], T["alerts"]])
 
-    st.markdown('<div class="section-title">Live exchange rates</div>', unsafe_allow_html=True)
-    search = st.text_input("Search currency", placeholder="Type USD, EUR, GBP, TRY, AED, SAR, KWD...", key="rate_search").strip().upper()
+with convert_tab:
+    c1, c2, c3 = st.columns([1.1, 1.0, 1.2])
+    with c1:
+        amount = st.number_input(T["amount"], min_value=1.0, value=100.0, step=10.0, key="hero_amount")
+    with c2:
+        currency = st.selectbox(T["from"], CURRENCIES, format_func=lambda x: f"{CURRENCY_FLAGS[x]} {x} - {CURRENCY_NAMES[code][x]}", key="hero_currency")
+    with c3:
+        result = amount * float(latest[currency])
+        st.metric(T["to"], f"{result:,.0f} IQD")
+    st.markdown(f'<div class="big-result">{amount:,.2f} {currency} = {result:,.0f} IQD</div><div class="small-note">{T["market_ref"]} • {latest_time}</div>', unsafe_allow_html=True)
 
-    for code, details in CURRENCIES.items():
-        if search and search not in code and search not in details["name"].upper():
+with rates_tab:
+    r1, r2, r3 = st.columns(3)
+    r1.metric(T["market"], f"{latest_market:,.0f} IQD", f"{change:,.0f} IQD")
+    r2.metric(T["buy"], f"{latest_buy:,.0f} IQD")
+    r3.metric(T["sell"], f"{latest_sell:,.0f} IQD")
+
+with chart_tab:
+    p = st.selectbox(T["period"], ["24h", "7d", "30d", "All"], index=2, key="mini_period")
+    st.altair_chart(make_chart(filter_period(df, p), "Market", T["area"]), use_container_width=True)
+
+with alerts_tab:
+    target = st.number_input(T["alert"], value=float(round(latest_market, 0)), step=250.0)
+    st.success(T["stable"] if latest_market < target else f"{T['market']} >= {target:,.0f}")
+st.markdown('</div>', unsafe_allow_html=True)
+
+if page == "dashboard":
+    st.markdown(f'<div class="section-title">{T["overview"]}</div>', unsafe_allow_html=True)
+    a, b, c = st.columns(3)
+    a.metric(T["market_price"], f"{latest_market:,.0f} IQD", f"{change:,.0f} IQD")
+    b.metric(T["buy"], f"{latest_buy:,.0f} IQD")
+    c.metric(T["sell"], f"{latest_sell:,.0f} IQD")
+    st.markdown(f'<div class="trend-card {trend_class}">{trend}</div>', unsafe_allow_html=True)
+
+    st.markdown(f'<div class="section-title">{T["live_rates"]}</div>', unsafe_allow_html=True)
+    search = st.text_input(T["search"], placeholder="USD, EUR, GBP, TRY, AED, SAR, KWD", key="search").strip().upper()
+    for cur in CURRENCIES:
+        name = CURRENCY_NAMES[code][cur]
+        if search and search not in cur and search not in name.upper():
             continue
+        st.markdown(f'<div class="rate-card"><div class="rate-left"><div class="flag">{CURRENCY_FLAGS[cur]}</div><div><div class="rate-name">{name}</div><div class="rate-code">{cur}</div></div></div><div><div class="rate-value">{float(latest[cur]):,.2f} IQD</div><div class="rate-unit">{T["per_1"]} {cur}</div></div></div>', unsafe_allow_html=True)
 
-        st.markdown(
-            f"""
-<div class="rate-card">
-  <div class="rate-left">
-    <div class="flag">{details['flag']}</div>
-    <div>
-      <div class="rate-name">{details['name']}</div>
-      <div class="rate-code">{code}</div>
-    </div>
-  </div>
-  <div>
-    <div class="rate-value">{float(latest[code]):,.2f} IQD</div>
-    <div class="rate-unit">{details['unit']}</div>
-  </div>
-</div>
-""",
-            unsafe_allow_html=True,
-        )
-
-    st.markdown('<div class="section-title">Market statistics</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section-title">{T["stats"]}</div>', unsafe_allow_html=True)
     s1, s2, s3, s4 = st.columns(4)
-    s1.metric("Highest", f"{df['Market'].max():,.0f} IQD")
-    s2.metric("Lowest", f"{df['Market'].min():,.0f} IQD")
-    s3.metric("Average", f"{df['Market'].mean():,.0f} IQD")
-    s4.metric("Records", f"{len(df):,.0f}")
+    s1.metric(T["highest"], f"{df['Market'].max():,.0f} IQD")
+    s2.metric(T["lowest"], f"{df['Market'].min():,.0f} IQD")
+    s3.metric(T["average"], f"{df['Market'].mean():,.0f} IQD")
+    s4.metric(T["records"], f"{len(df):,.0f}")
 
-    st.markdown('<div class="section-title">Market chart</div>', unsafe_allow_html=True)
-    p1, p2, p3 = st.columns([1, 1, 2])
-    with p1:
-        period = st.selectbox("Period", ["24h", "7d", "30d", "All"], index=3, key="dashboard_period")
-    with p2:
-        chart_type = st.selectbox("Chart type", ["Area", "Line"], index=0, key="dashboard_chart_type")
-
-    chart_df = filter_period(df, period)
+    st.markdown(f'<div class="section-title">{T["chart"]}</div>', unsafe_allow_html=True)
+    x1, x2, _ = st.columns([1, 1, 2])
+    with x1:
+        period = st.selectbox(T["period"], ["24h", "7d", "30d", "All"], index=3, key="dash_period")
+    with x2:
+        chart_type = st.selectbox(T["chart_type"], [T["area"], T["line"]], key="dash_chart")
     st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-    st.altair_chart(market_chart(chart_df, "Market", chart_type), use_container_width=True)
+    st.altair_chart(make_chart(filter_period(df, period), "Market", chart_type), use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-elif page == "Historical Data":
-    st.markdown('<div class="section-title">Historical market records</div>', unsafe_allow_html=True)
-
-    h1, h2, h3 = st.columns([1, 1, 2])
+elif page == "history":
+    st.markdown(f'<div class="section-title">{T["historical_records"]}</div>', unsafe_allow_html=True)
+    h1, h2, _ = st.columns([1, 1, 2])
     with h1:
-        history_period = st.selectbox("Period", ["24h", "7d", "30d", "All"], index=3, key="history_period")
+        period = st.selectbox(T["period"], ["24h", "7d", "30d", "All"], index=3, key="hist_period")
     with h2:
-        history_currency = st.selectbox("Currency", ["Market", *CURRENCIES.keys()], index=0, key="history_currency")
+        cur = st.selectbox(T["currency"], ["Market", *CURRENCIES], key="hist_cur")
+    hist = filter_period(df, period)
+    st.dataframe(hist.tail(200), use_container_width=True, hide_index=True)
+    st.download_button(T["download"], data=csv_bytes(hist), file_name=f"iqd_history_{datetime.now().strftime('%Y%m%d_%H%M')}.csv", mime="text/csv", type="primary", use_container_width=True)
+    st.markdown(f'<div class="section-title">{T["historical_chart"]}</div>', unsafe_allow_html=True)
+    st.altair_chart(make_chart(hist, cur, T["area"]), use_container_width=True)
 
-    history_df = filter_period(df, history_period)
-    st.dataframe(history_df.tail(200), use_container_width=True, hide_index=True)
-
-    st.download_button(
-        "Download CSV",
-        data=to_csv_bytes(history_df),
-        file_name=f"iqd_history_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-        mime="text/csv",
-        type="primary",
-        use_container_width=True,
-    )
-
-    st.markdown('<div class="section-title">Historical chart</div>', unsafe_allow_html=True)
-    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-    st.altair_chart(market_chart(history_df, history_currency, "Area"), use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-elif page == "Currency Converter":
-    st.markdown('<div class="section-title">Advanced converter</div>', unsafe_allow_html=True)
-
-    with st.form("advanced_converter_form"):
+else:
+    st.markdown(f'<div class="section-title">{T["advanced_converter"]}</div>', unsafe_allow_html=True)
+    with st.form("advanced_converter"):
         f1, f2 = st.columns(2)
         with f1:
-            adv_amount = st.number_input("Amount", min_value=1.0, value=100.0, step=10.0)
+            adv_amount = st.number_input(T["amount"], min_value=1.0, value=100.0, step=10.0)
         with f2:
-            adv_currency = st.selectbox("From currency", list(CURRENCIES.keys()))
-
-        submitted = st.form_submit_button("Convert now", type="primary", use_container_width=True)
-
+            adv_currency = st.selectbox(T["from"], CURRENCIES, format_func=lambda x: f"{CURRENCY_FLAGS[x]} {x} - {CURRENCY_NAMES[code][x]}")
+        st.form_submit_button(T["convert_now"], type="primary", use_container_width=True)
     adv_result = adv_amount * float(latest[adv_currency])
-    st.metric("Converted value", f"{adv_result:,.0f} IQD")
-
-    st.markdown('<div class="section-title">Quick USD values</div>', unsafe_allow_html=True)
+    st.metric(T["result"], f"{adv_result:,.0f} IQD")
+    st.markdown(f'<div class="section-title">{T["quick"]}</div>', unsafe_allow_html=True)
     q1, q2, q3, q4 = st.columns(4)
     q1.metric("100 USD", f"{100 * latest_usd:,.0f} IQD")
     q2.metric("500 USD", f"{500 * latest_usd:,.0f} IQD")
     q3.metric("1,000 USD", f"{1000 * latest_usd:,.0f} IQD")
     q4.metric("5,000 USD", f"{5000 * latest_usd:,.0f} IQD")
 
-st.markdown(
-    """
-<div class="footer">
-  Built for Iraqi market monitoring. Rates are informational and may vary by exchange office, spread, and timing.
-</div>
-""",
-    unsafe_allow_html=True,
-)
+st.markdown(f'<div class="footer">{T["footer"]}</div>', unsafe_allow_html=True)
