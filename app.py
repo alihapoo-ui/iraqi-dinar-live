@@ -22,21 +22,20 @@ LANGS = {
 TEXT = {
     "en": {
         "title": "Iraqi Dinar Live",
-        "subtitle": "Live USD/IQD market rates from PMCgroup with charts and currency conversion.",
+        "subtitle": "Live USD/IQD market rates with charts, history, and currency conversion.",
         "converter": "Currency converter",
         "charts": "Currency charts",
         "history": "History",
-        "alerts": "Alerts",
+        "price_check": "Price Check",
         "amount": "Amount",
         "from": "From",
-        "to": "To",
+        "to": "To IQD",
         "market": "Market",
         "buy": "Buy USD",
         "sell": "Sell USD",
         "last": "Last updated",
         "source": "Source",
-        "live": "Live feed active",
-        "stale": "Live feed may be delayed",
+        "source_value": "Live market feed",
         "popular": "Popular currencies",
         "period": "Period",
         "high": "High",
@@ -44,32 +43,29 @@ TEXT = {
         "average": "Average",
         "data_points": "Data Points",
         "download": "Download CSV",
-        "alert_level": "Alert level",
-        "create_alert": "Create alert",
-        "above": "Market is above your alert level",
-        "below": "Market is below your alert level",
+        "target_price": "Target price",
+        "check_price": "Check price",
+        "above": "Market is above your target price",
+        "below": "Market is below your target price",
         "footer": "Rates are informational and may vary by exchange office, spread, and timing.",
-        "ticker": "Live Bursa ticker",
-        "updated_ago": "min ago",
-        "auto": "Auto refresh every minute",
+        "stats": "Stats",
     },
     "ar": {
         "title": "الدينار العراقي مباشر",
-        "subtitle": "سعر الدولار مقابل الدينار من PMCgroup مع الرسوم والتحويل.",
+        "subtitle": "سعر الدولار مقابل الدينار مع الرسوم البيانية والسجل وتحويل العملات.",
         "converter": "محول العملات",
         "charts": "رسوم العملات",
         "history": "السجل",
-        "alerts": "التنبيهات",
+        "price_check": "فحص السعر",
         "amount": "المبلغ",
         "from": "من",
-        "to": "إلى",
+        "to": "إلى الدينار العراقي",
         "market": "السوق",
         "buy": "شراء الدولار",
         "sell": "بيع الدولار",
         "last": "آخر تحديث",
         "source": "المصدر",
-        "live": "التحديث المباشر يعمل",
-        "stale": "قد يكون التحديث متأخراً",
+        "source_value": "تغذية أسعار مباشرة",
         "popular": "العملات الرئيسية",
         "period": "الفترة",
         "high": "الأعلى",
@@ -77,32 +73,29 @@ TEXT = {
         "average": "المعدل",
         "data_points": "نقاط البيانات",
         "download": "تحميل CSV",
-        "alert_level": "مستوى التنبيه",
-        "create_alert": "إنشاء تنبيه",
-        "above": "السوق أعلى من مستوى التنبيه",
-        "below": "السوق أقل من مستوى التنبيه",
+        "target_price": "السعر المستهدف",
+        "check_price": "فحص السعر",
+        "above": "السوق أعلى من السعر المستهدف",
+        "below": "السوق أقل من السعر المستهدف",
         "footer": "الأسعار معلوماتية وقد تختلف حسب مكتب الصرافة والسبريد والتوقيت.",
-        "ticker": "شريط الأسعار المباشر",
-        "updated_ago": "دقيقة مضت",
-        "auto": "تحديث تلقائي كل دقيقة",
+        "stats": "الإحصائيات",
     },
     "ku": {
         "title": "دیناری عێراقی ڕاستەوخۆ",
-        "subtitle": "نرخی دۆلار بە دینار لە PMCgroup لەگەڵ چارت و گۆڕینی دراو.",
+        "subtitle": "نرخی دۆلار بە دینار لەگەڵ چارت، مێژوو، و گۆڕینی دراو.",
         "converter": "گۆڕینی دراو",
         "charts": "چارتەکانی دراو",
         "history": "مێژوو",
-        "alerts": "ئاگادارکردنەوە",
+        "price_check": "پشکنینی نرخ",
         "amount": "بڕ",
         "from": "لە",
-        "to": "بۆ",
+        "to": "بۆ دیناری عێراقی",
         "market": "بازاڕ",
         "buy": "کڕینی دۆلار",
         "sell": "فرۆشتنی دۆلار",
         "last": "دوایین نوێکردنەوە",
         "source": "سەرچاوە",
-        "live": "نوێکردنەوەی ڕاستەوخۆ کاردەکات",
-        "stale": "نوێکردنەوە لەوانەیە دوا کەوتبێت",
+        "source_value": "داتای ڕاستەوخۆی بازاڕ",
         "popular": "دراوە گرنگەکان",
         "period": "ماوە",
         "high": "بەرزترین",
@@ -110,14 +103,12 @@ TEXT = {
         "average": "تێکڕا",
         "data_points": "خاڵەکانی داتا",
         "download": "داگرتنی CSV",
-        "alert_level": "ئاستی ئاگاداری",
-        "create_alert": "دروستکردنی ئاگاداری",
-        "above": "بازاڕ لە ئاستی ئاگاداری بەرزترە",
-        "below": "بازاڕ لە ئاستی ئاگاداری خوارترە",
+        "target_price": "نرخی ئامانج",
+        "check_price": "پشکنینی نرخ",
+        "above": "بازاڕ لە نرخی ئامانج بەرزترە",
+        "below": "بازاڕ لە نرخی ئامانج خوارترە",
         "footer": "نرخەکان زانیاریین و دەتوانن بە پێی صرافە و کات جیاواز بن.",
-        "ticker": "تیکەری ڕاستەوخۆی بازاڕ",
-        "updated_ago": "خولەک لەمەوبەر",
-        "auto": "هەر خولەکێک خۆکار نوێ دەبێتەوە",
+        "stats": "ئامارەکان",
     },
 }
 
@@ -133,19 +124,18 @@ COLUMNS = ["Time", "USD", "EUR", "GBP", "TRY", "AED", "SAR", "KWD", "Market", "B
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-:root{--navy:#06165f;--blue:#0974e8;--text:#17213a;--muted:#657089;--bg:#f6f8fc;--card:#ffffff;--line:#e5eaf3;--green:#0f9f5f;--red:#e23b67;}
+:root{--navy:#07145f;--text:#17213a;--muted:#657089;--bg:#f6f8fc;--line:#e5eaf3;--green:#0f9f5f;--red:#e23b67;}
 html,body,[class*="css"]{font-family:'Inter',sans-serif!important;}
 .stApp{background:var(--bg);color:var(--text);}
 .block-container{padding:0 2.2rem 2rem!important;max-width:1180px!important;}
 section[data-testid="stSidebar"]{background:#fff!important;border-right:1px solid var(--line);}
-h1,h2,h3{color:var(--text)!important;}
-.topbar{background:linear-gradient(135deg,#07145f,#0c1e78);margin:0 -2.2rem;padding:24px 2.2rem 50px;color:white;}
-.toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;}
-.brand{font-weight:900;font-size:34px;letter-spacing:-.06em;}
-.pill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);padding:8px 12px;border-radius:999px;font-weight:800;font-size:13px;color:#e7efff;}
+.topbar{background:linear-gradient(135deg,#07145f,#0c1e78);margin:0 -2.2rem;padding:24px 2.2rem 50px;color:white;overflow:hidden;}
+.toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;}
+.brand{font-weight:900;font-size:34px;letter-spacing:-.06em;white-space:nowrap;}
+.pill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);padding:8px 12px;border-radius:999px;font-weight:800;font-size:13px;color:#e7efff;white-space:nowrap;}
 .dot{width:8px;height:8px;border-radius:50%;background:#28d779;box-shadow:0 0 0 5px rgba(40,215,121,.18);}
-.hero-title{font-size:clamp(34px,6vw,58px);font-weight:900;letter-spacing:-.06em;line-height:1.02;text-align:center;margin:10px 0;}
-.hero-sub{font-size:17px;color:#dce7ff;text-align:center;margin-bottom:12px;}
+.hero-title{font-size:clamp(34px,6vw,58px);font-weight:900;letter-spacing:-.06em;line-height:1.02;text-align:center;margin:8px 0;}
+.hero-sub{font-size:17px;color:#dce7ff;text-align:center;margin-bottom:10px;}
 .main-card{background:#fff;border:1px solid var(--line);border-radius:30px;padding:28px;margin-top:-38px;box-shadow:0 18px 42px rgba(15,23,42,.10);position:relative;z-index:5;}
 .section{font-size:28px;font-weight:900;letter-spacing:-.04em;margin:28px 0 14px;}
 .small{color:var(--muted);font-size:13px;font-weight:600;}
@@ -167,12 +157,13 @@ div[data-testid="stMetricValue"]{font-weight:900!important;}
 @media(max-width:768px){
   .block-container{padding:0 .8rem 1.5rem!important;}
   .topbar{margin:0 -.8rem;padding:18px .8rem 34px;}
-  .toprow{margin-bottom:12px}.brand{font-size:32px}.hero-title{font-size:31px}.hero-sub{font-size:14px;}
+  .toprow{margin-bottom:12px;align-items:flex-start}.brand{font-size:32px}.hero-title{font-size:31px}.hero-sub{font-size:14px;}
+  .pill{font-size:10px;padding:6px 8px;}
   .main-card{margin-top:-24px;border-radius:22px;padding:16px;}
-      .market-strip{grid-template-columns:1fr;gap:10px}.mini-value{font-size:27px;}
+  .market-strip{grid-template-columns:1fr;gap:10px}.mini-value{font-size:27px;}
   .rate-row{grid-template-columns:48px 1fr 96px;gap:10px;padding:14px;border-radius:18px;}
   .rate-row .spark{grid-column:2/4;text-align:left;font-size:17px;}
-  .code{font-size:22px}.value{font-size:21px}.section{font-size:25px;margin:24px 0 12px;}.stat-grid{grid-template-columns:repeat(2,1fr)}.stat .num{font-size:18px;white-space:normal}.chart-card{padding:8px;border-radius:18px}.pill{font-size:11px;padding:6px 10px}
+  .code{font-size:22px}.value{font-size:21px}.section{font-size:25px;margin:24px 0 12px;}.stat-grid{grid-template-columns:repeat(2,1fr)}.stat .num{font-size:18px;white-space:normal}.chart-card{padding:8px;border-radius:18px}
 }
 </style>
 """, unsafe_allow_html=True)
@@ -268,7 +259,6 @@ change = market - prev
 pct = (change / prev * 100) if prev else 0
 change_class = "change-up" if change > 0 else "change-down" if change < 0 else "change-flat"
 arrow = "🔺" if change > 0 else "🔻" if change < 0 else "●"
-age_min = max(0, int((pd.Timestamp.now() - latest["Time"]).total_seconds() / 60))
 
 st.markdown(f"""
 <div class="topbar">
@@ -283,7 +273,7 @@ st.markdown(f"""
 
 st.markdown('<div class="main-card">', unsafe_allow_html=True)
 
-tab_convert, tab_charts, tab_history, tab_alerts = st.tabs([T["converter"], T["charts"], T["history"], T["alerts"]])
+tab_convert, tab_charts, tab_history, tab_check = st.tabs([T["converter"], T["charts"], T["history"], T["price_check"]])
 
 with tab_convert:
     c1, c2, c3 = st.columns([1, 1, 1.2])
@@ -295,7 +285,7 @@ with tab_convert:
     with c3:
         st.metric(T["to"], f"{result:,.0f} IQD")
     st.markdown(f'<div class="result">{amount:,.0f} {from_ccy} = {result:,.0f} IQD</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="small">{T["last"]}: {latest_time} • {T["source"]}: PMCgroup</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="small">{T["last"]}: {latest_time} • {T["source"]}: {T["source_value"]}</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="market-strip">', unsafe_allow_html=True)
     st.markdown(f'<div class="mini-card"><div class="mini-label">{T["market"]}</div><div class="mini-value">{market:,.0f} IQD</div><div class="{change_class}">{arrow} {change:,.0f} IQD ({pct:+.2f}%)</div></div>', unsafe_allow_html=True)
@@ -319,7 +309,7 @@ with tab_charts:
     with c1:
         chart_ccy = st.selectbox(T["from"], ["Market", *CURRENCIES], index=0)
     with c2:
-        period = st.segmented_control(T["period"], ["1D", "1W", "1M", "ALL"], default="1M")
+        period = st.radio(T["period"], ["1D", "1W", "1M", "ALL"], index=2, horizontal=True)
     chart_df = filter_period(df, period)
     first = float(chart_df[chart_ccy].iloc[0])
     last = float(chart_df[chart_ccy].iloc[-1])
@@ -331,7 +321,7 @@ with tab_charts:
     st.markdown('<div class="chart-card">', unsafe_allow_html=True)
     st.altair_chart(make_chart(chart_df, chart_ccy), use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="section">Stats</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section">{T["stats"]}</div>', unsafe_allow_html=True)
     st.markdown('<div class="stat-grid">', unsafe_allow_html=True)
     st.markdown(f'<div class="stat"><div class="label">{T["high"]}</div><div class="num">{chart_df[chart_ccy].max():,.2f}</div></div>', unsafe_allow_html=True)
     st.markdown(f'<div class="stat"><div class="label">{T["low"]}</div><div class="num">{chart_df[chart_ccy].min():,.2f}</div></div>', unsafe_allow_html=True)
@@ -340,14 +330,14 @@ with tab_charts:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab_history:
-    period = st.segmented_control(T["period"], ["1D", "1W", "1M", "ALL"], default="ALL", key="hist_period")
+    period = st.radio(T["period"], ["1D", "1W", "1M", "ALL"], index=3, horizontal=True, key="hist_period")
     hist = filter_period(df, period)
     st.dataframe(hist.tail(200), use_container_width=True, hide_index=True)
     st.download_button(T["download"], data=csv_bytes(hist), file_name=f"iqd_history_{datetime.now().strftime('%Y%m%d_%H%M')}.csv", mime="text/csv", type="primary", use_container_width=True)
 
-with tab_alerts:
-    target = st.number_input(T["alert_level"], value=float(round(market, 0)), step=250.0)
-    st.button(T["create_alert"], type="primary", use_container_width=True)
+with tab_check:
+    target = st.number_input(T["target_price"], value=float(round(market, 0)), step=250.0)
+    st.button(T["check_price"], type="primary", use_container_width=True)
     if market >= target:
         st.warning(f"{T['above']}: {market:,.0f} IQD")
     else:
