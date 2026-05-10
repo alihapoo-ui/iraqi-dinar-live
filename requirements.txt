@@ -1,9 +1,0 @@
-streamlit
-pandas
-matplotlib
-streamlit-autorefresh
-telethon
-requests
-pytz
-pyngrok
-altair
