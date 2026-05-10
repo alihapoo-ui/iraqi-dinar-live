@@ -1,0 +1,102 @@
+name: Fix CSS F String Syntax
+
+on:
+  push:
+    paths:
+      - ".github/workflows/fix_fstring_css.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fix CSS braces inside Streamlit f-string
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('app.py')
+          s = p.read_text(encoding='utf-8')
+
+          # The last UX workflow inserted normal CSS braces inside an f-string
+          # st.markdown(f"""...<style>...</style>"""), causing SyntaxError.
+          # Replace that CSS block with f-string-safe doubled braces.
+          safe_css = '''
+/* Final professional UX polish */
+.sticky-rate{{position:sticky;top:0;z-index:999;background:#07145f;color:white;padding:10px 16px;border-radius:0 0 16px 16px;font-weight:900;text-align:center;box-shadow:0 10px 24px rgba(15,23,42,.16);}}
+.stats-grid{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:8px;}}
+.stat-card{{background:#fff;border:1px solid #e4eaf3;border-radius:20px;padding:18px;box-shadow:0 10px 26px rgba(15,23,42,.06);min-width:0;}}
+.stat-label{{font-size:12px;color:#667085;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}}
+.stat-value{{font-size:clamp(22px,3vw,34px);font-weight:900;color:#13213c;line-height:1.05;white-space:nowrap;}}
+.stat-unit{{font-size:12px;color:#667085;font-weight:800;margin-top:4px;}}
+.sparkline{{font-family:monospace;color:#0B74E5;font-weight:900;font-size:18px;letter-spacing:1px;margin-bottom:4px;text-align:right;}}
+.rate-right{{text-align:right;}}
+.chart-card{{background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%)!important;border:1px solid #e4eaf3!important;border-radius:24px!important;padding:22px!important;box-shadow:0 18px 42px rgba(15,23,42,.08)!important;}}
+@media(max-width:768px){{
+  .stats-grid{{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}}
+  .stat-card{{padding:13px;border-radius:16px;}}
+  .stat-value{{font-size:20px;white-space:normal;word-break:keep-all;}}
+  .stat-unit{{font-size:11px;}}
+  .sticky-rate{{font-size:13px;padding:8px 12px;}}
+  .sparkline{{text-align:left;font-size:15px;}}
+}}
+'''
+
+          if '/* Final professional UX polish */' in s:
+              s = re.sub(
+                  r'/\* Final professional UX polish \*/.*?(?=\n</style>)',
+                  safe_css.rstrip(),
+                  s,
+                  flags=re.S,
+              )
+
+          # Also fix any professional-chart block inserted with plain CSS braces.
+          safe_chart_css = '''
+/* Professional chart and mobile polish */
+.chart-card{{
+  background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%)!important;
+  border:1px solid #e4eaf3!important;
+  border-radius:24px!important;
+  padding:22px!important;
+  box-shadow:0 18px 42px rgba(15,23,42,.08)!important;
+}}
+@media(max-width:768px){{
+  .block-container{{padding-left:.8rem!important;padding-right:.8rem!important;}}
+  .hero{{margin-left:-.8rem!important;margin-right:-.8rem!important;padding:24px .8rem 78px!important;}}
+  .hero-title{{font-size:30px!important;line-height:1.08!important;}}
+  .hero-subtitle{{font-size:14px!important;}}
+  .converter-card{{margin-top:-48px!important;padding:16px!important;border-radius:22px!important;}}
+  .section-title{{font-size:24px!important;margin:30px 0 14px!important;}}
+  div[data-testid="metric-container"]{{padding:13px!important;border-radius:16px!important;}}
+  div[data-testid="metric-container"] [data-testid="stMetricValue"]{{font-size:1.22rem!important;line-height:1.25!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;}}
+  .chart-card{{padding:10px!important;border-radius:18px!important;overflow-x:auto!important;}}
+  .rate-card{{padding:14px!important;}}
+}}
+'''
+          if '/* Professional chart and mobile polish */' in s:
+              s = re.sub(
+                  r'/\* Professional chart and mobile polish \*/.*?(?=\n/\* Final professional UX polish \*/|\n</style>)',
+                  safe_chart_css.rstrip(),
+                  s,
+                  flags=re.S,
+              )
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Verify Python syntax
+        run: python -m py_compile app.py
+
+      - name: Commit fixed app
+        run: |
+          git config user.name github-actions
+          git config user.email actions@github.com
+          git add app.py
+          git commit -m "Fix CSS braces in Streamlit f-string" || echo "No changes"
+          git push
