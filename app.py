@@ -29,33 +29,33 @@ df["Time"] = pd.to_datetime(df["Time"], errors="coerce")
 df = df.dropna(subset=["Time"])
 df = df.sort_values("Time").reset_index(drop=True)
 
-# =========================
-# LATEST VALUES
-# =========================
+if df.empty:
+    st.error("No market data found yet. Please run the update workflow first.")
+    st.stop()
 
 latest = df.iloc[-1]
 
 latest_time = latest["Time"].strftime("%Y-%m-%d %H:%M:%S")
-latest_usd = latest["USD"]
-latest_market = latest["Market"]
-latest_buy = latest["Buy"]
-latest_sell = latest["Sell"]
+latest_usd = float(latest["USD"])
+latest_market = float(latest["Market"])
+latest_buy = float(latest["Buy"])
+latest_sell = float(latest["Sell"])
 
 if len(df) >= 2:
-    previous_market = df["Market"].iloc[-2]
+    previous_market = float(df["Market"].iloc[-2])
     market_change = latest_market - previous_market
 else:
     market_change = 0
 
 if market_change > 0:
-    trend_text = f"▲ Market increased by {market_change:,.0f} IQD"
-    trend_class = "good"
+    trend_text = f"Market increased by {market_change:,.0f} IQD"
+    trend_class = "trend-up"
 elif market_change < 0:
-    trend_text = f"▼ Market decreased by {abs(market_change):,.0f} IQD"
-    trend_class = "bad"
+    trend_text = f"Market decreased by {abs(market_change):,.0f} IQD"
+    trend_class = "trend-down"
 else:
-    trend_text = "● Market is stable"
-    trend_class = "neutral"
+    trend_text = "Market is stable"
+    trend_class = "trend-neutral"
 
 # =========================
 # STYLE
@@ -71,41 +71,55 @@ html, body, [class*="css"] {
 }
 
 .stApp {
-    background: #F6F8FC;
-    color: #0F172A;
+    background: #F5F7FB;
+    color: #14213D;
 }
 
 .block-container {
     padding-top: 0rem;
-    padding-left: 4rem;
-    padding-right: 4rem;
-    max-width: 1350px;
+    padding-left: 3rem;
+    padding-right: 3rem;
+    max-width: 1280px;
 }
 
 section[data-testid="stSidebar"] {
     background: #FFFFFF;
-    border-right: 1px solid #E5E7EB;
+    border-right: 1px solid #E5EAF2;
 }
 
 section[data-testid="stSidebar"] * {
-    color: #0F172A;
+    color: #14213D;
 }
 
 .hero {
-    background: linear-gradient(135deg, #06145F 0%, #0B1F80 55%, #061B4D 100%);
-    margin-left: -4rem;
-    margin-right: -4rem;
-    padding: 42px 4rem 130px 4rem;
+    background: linear-gradient(135deg, #07145F 0%, #0B1F7A 52%, #07134B 100%);
+    margin-left: -3rem;
+    margin-right: -3rem;
+    padding: 34px 3rem 115px 3rem;
     color: white;
-    border-bottom-left-radius: 45% 8%;
-    border-bottom-right-radius: 45% 8%;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero:after {
+    content: "";
+    position: absolute;
+    left: -10%;
+    right: -10%;
+    bottom: -75px;
+    height: 130px;
+    background: #F5F7FB;
+    border-radius: 50% 50% 0 0;
 }
 
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 55px;
+    max-width: 1050px;
+    margin: 0 auto 48px auto;
+    position: relative;
+    z-index: 2;
 }
 
 .brand {
@@ -116,9 +130,9 @@ section[data-testid="stSidebar"] * {
 
 .navlinks span {
     margin-left: 28px;
-    font-size: 15px;
-    font-weight: 700;
-    color: #E0E7FF;
+    font-size: 14px;
+    font-weight: 800;
+    color: #E6ECFF;
 }
 
 .hero-title {
@@ -126,127 +140,116 @@ section[data-testid="stSidebar"] * {
     font-size: 42px;
     font-weight: 900;
     letter-spacing: -0.05em;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 2;
 }
 
 .hero-subtitle {
     text-align: center;
-    font-size: 18px;
-    color: #D8E4FF;
+    font-size: 17px;
+    color: #D7E2FF;
+    position: relative;
+    z-index: 2;
 }
 
-.converter-card {
+.converter-shell {
     background: #FFFFFF;
-    margin-top: -95px;
     border-radius: 28px;
-    padding: 30px;
-    box-shadow: 0 30px 70px rgba(15, 23, 42, 0.16);
-    border: 1px solid #E5E7EB;
+    padding: 28px;
+    margin-top: -72px;
+    box-shadow: 0 28px 70px rgba(15, 23, 42, 0.14);
+    border: 1px solid #E5EAF2;
+    position: relative;
+    z-index: 5;
 }
 
-.card-tabs {
-    display: flex;
-    gap: 12px;
+.fake-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    background: #F8FAFC;
+    border: 1px solid #E5EAF2;
+    padding: 8px;
+    border-radius: 999px;
     margin-bottom: 25px;
 }
 
-.tab-active {
-    background: #1E2A44;
+.fake-tab-active {
+    background: #263A5F;
     color: white;
-    padding: 13px 45px;
+    padding: 13px 20px;
     border-radius: 999px;
-    font-weight: 800;
-    font-size: 14px;
+    text-align: center;
+    font-weight: 900;
 }
 
-.tab-muted {
-    background: #F1F5F9;
+.fake-tab {
     color: #64748B;
-    padding: 13px 45px;
+    padding: 13px 20px;
     border-radius: 999px;
-    font-weight: 800;
-    font-size: 14px;
-}
-
-.converter-box {
-    border: 1px solid #E5E7EB;
-    border-radius: 18px;
-    padding: 20px;
-    background: #FBFDFF;
-}
-
-.converter-label {
-    font-size: 13px;
-    font-weight: 700;
-    color: #64748B;
-    margin-bottom: 6px;
-}
-
-.converter-value {
-    font-size: 34px;
+    text-align: center;
     font-weight: 900;
-    color: #0F172A;
-    letter-spacing: -0.04em;
 }
 
-.rate-line {
-    margin-top: 22px;
-    font-size: 24px;
+.result-line {
+    font-size: 26px;
     font-weight: 900;
-    color: #0F2B66;
+    color: #09245F;
+    margin-top: 20px;
 }
 
-.rate-note {
-    font-size: 14px;
+.result-note {
     color: #64748B;
-    margin-top: 5px;
+    font-size: 14px;
+    margin-top: 6px;
 }
 
-.primary-button {
+.blue-btn {
     background: #0B74E5;
     color: white;
-    border-radius: 10px;
-    padding: 15px 22px;
+    padding: 16px 22px;
+    border-radius: 12px;
     text-align: center;
     font-weight: 900;
-    margin-top: 28px;
+    margin-top: 22px;
 }
 
-.secondary-button {
+.soft-btn {
     background: #EEF5FF;
     color: #0B74E5;
-    border-radius: 10px;
-    padding: 15px 22px;
+    padding: 16px 22px;
+    border-radius: 12px;
     text-align: center;
     font-weight: 900;
-    margin-top: 28px;
+    margin-top: 22px;
 }
 
 .section-title {
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 900;
     letter-spacing: -0.04em;
-    color: #0F172A;
-    margin-top: 38px;
-    margin-bottom: 18px;
+    color: #14213D;
+    margin-top: 42px;
+    margin-bottom: 20px;
 }
 
 div[data-testid="metric-container"] {
     background: #FFFFFF;
-    border: 1px solid #E5E7EB;
+    border: 1px solid #E5EAF2;
     border-radius: 22px;
     padding: 22px;
-    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
 }
 
 div[data-testid="metric-container"] label {
     color: #64748B !important;
-    font-weight: 800 !important;
     font-size: 0.82rem !important;
+    font-weight: 800 !important;
 }
 
 div[data-testid="metric-container"] [data-testid="stMetricValue"] {
-    color: #0F172A !important;
+    color: #14213D !important;
     font-weight: 900 !important;
     font-size: 2rem !important;
 }
@@ -255,22 +258,22 @@ div[data-testid="metric-container"] [data-testid="stMetricValue"] {
     padding: 18px 22px;
     border-radius: 18px;
     font-weight: 900;
-    margin: 18px 0 28px 0;
+    margin: 20px 0;
 }
 
-.good {
+.trend-up {
     background: #E8F9EF;
     color: #0F9F4D;
     border: 1px solid #B8EBCB;
 }
 
-.bad {
+.trend-down {
     background: #FEECEC;
     color: #D92828;
     border: 1px solid #F7B8B8;
 }
 
-.neutral {
+.trend-neutral {
     background: #FFF7E6;
     color: #C47A00;
     border: 1px solid #F4D38B;
@@ -278,18 +281,48 @@ div[data-testid="metric-container"] [data-testid="stMetricValue"] {
 
 .chart-card {
     background: #FFFFFF;
-    border: 1px solid #E5E7EB;
+    border: 1px solid #E5EAF2;
     border-radius: 24px;
     padding: 24px;
-    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.07);
-    margin-top: 12px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+    margin-top: 14px;
+}
+
+.small-muted {
+    color: #64748B;
+    font-size: 13px;
+}
+
+.currency-row {
+    background: #FFFFFF;
+    border: 1px solid #E5EAF2;
+    border-radius: 18px;
+    padding: 18px 22px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.currency-name {
+    font-weight: 900;
+    color: #14213D;
+}
+
+.currency-value {
+    font-weight: 900;
+    color: #0B74E5;
 }
 
 .footer {
-    color: #64748B;
-    font-size: 13px;
-    margin-top: 35px;
     text-align: center;
+    color: #64748B;
+    margin-top: 45px;
+    font-size: 13px;
+}
+
+div[data-baseweb="input"] {
+    border-radius: 14px;
 }
 
 </style>
@@ -338,62 +371,63 @@ st.markdown(
 )
 
 # =========================
-# CONVERTER CARD
+# SHARED CONVERTER CARD
 # =========================
 
-st.markdown('<div class="converter-card">', unsafe_allow_html=True)
+st.markdown('<div class="converter-shell">', unsafe_allow_html=True)
 
 st.markdown(
     """
-    <div class="card-tabs">
-        <div class="tab-active">Convert</div>
-        <div class="tab-muted">Rates</div>
-        <div class="tab-muted">Charts</div>
-        <div class="tab-muted">Alerts</div>
+    <div class="fake-tabs">
+        <div class="fake-tab-active">Convert</div>
+        <div class="fake-tab">Rates</div>
+        <div class="fake-tab">Charts</div>
+        <div class="fake-tab">Alerts</div>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-left, right = st.columns(2)
+input_col, currency_col, output_col = st.columns([1.2, 1, 1.2])
 
-with left:
+with input_col:
+    amount = st.number_input(
+        "Amount",
+        min_value=1.0,
+        value=100.0,
+        step=10.0,
+        key="main_amount"
+    )
+
+with currency_col:
+    from_currency = st.selectbox(
+        "From",
+        ["USD", "EUR", "GBP", "TRY", "AED", "SAR", "KWD"],
+        key="main_currency"
+    )
+
+with output_col:
+    live_rate = float(latest[from_currency])
+    converted_value = amount * live_rate
+    st.metric("To IQD", f"{converted_value:,.0f} IQD")
+
+btn_col_1, btn_col_2 = st.columns([2, 1])
+
+with btn_col_1:
     st.markdown(
         f"""
-        <div class="converter-box">
-            <div class="converter-label">From</div>
-            <div class="converter-value">$100.00 USD</div>
+        <div class="result-line">
+            {amount:,.2f} {from_currency} = {converted_value:,.0f} IQD
+        </div>
+        <div class="result-note">
+            Market reference from PMCgroup • Updated {latest_time}
         </div>
         """,
         unsafe_allow_html=True
     )
 
-with right:
-    st.markdown(
-        f"""
-        <div class="converter-box">
-            <div class="converter-label">To</div>
-            <div class="converter-value">{latest_market:,.0f} IQD</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-b1, b2 = st.columns([2, 1])
-
-with b1:
-    st.markdown(
-        f"""
-        <div class="rate-line">100 USD = {latest_market:,.0f} IQD</div>
-        <div class="rate-note">
-            Market reference rate from PMCgroup • Updated {latest_time}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-with b2:
-    st.markdown('<div class="primary-button">Track exchange rates</div>', unsafe_allow_html=True)
+with btn_col_2:
+    st.markdown('<div class="blue-btn">Track exchange rates</div>', unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -420,20 +454,39 @@ if page == "Dashboard":
         unsafe_allow_html=True
     )
 
-    st.markdown('<div class="section-title">Foreign Currency Rates</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Live Exchange Rates</div>', unsafe_allow_html=True)
 
-    col1, col2, col3, col4 = st.columns(4)
+    search = st.text_input(
+        "Search currency",
+        placeholder="Type USD, EUR, GBP, TRY, AED, SAR, KWD..."
+    ).upper()
 
-    col1.metric("USD", f"{df['USD'].iloc[-1]:,.2f}")
-    col2.metric("EUR", f"{df['EUR'].iloc[-1]:,.2f}")
-    col3.metric("GBP", f"{df['GBP'].iloc[-1]:,.2f}")
-    col4.metric("TRY", f"{df['TRY'].iloc[-1]:,.2f}")
+    currency_names = {
+        "USD": "US Dollar",
+        "EUR": "Euro",
+        "GBP": "British Pound",
+        "TRY": "Turkish Lira",
+        "AED": "UAE Dirham",
+        "SAR": "Saudi Riyal",
+        "KWD": "Kuwaiti Dinar"
+    }
 
-    col5, col6, col7 = st.columns(3)
+    for code, name in currency_names.items():
+        if search and search not in code and search not in name.upper():
+            continue
 
-    col5.metric("AED", f"{df['AED'].iloc[-1]:,.2f}")
-    col6.metric("SAR", f"{df['SAR'].iloc[-1]:,.2f}")
-    col7.metric("KWD", f"{df['KWD'].iloc[-1]:,.2f}")
+        st.markdown(
+            f"""
+            <div class="currency-row">
+                <div>
+                    <div class="currency-name">{name}</div>
+                    <div class="small-muted">{code}</div>
+                </div>
+                <div class="currency-value">{float(latest[code]):,.2f} IQD</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     st.markdown('<div class="section-title">Market Statistics</div>', unsafe_allow_html=True)
 
@@ -512,21 +565,35 @@ elif page == "Historical Data":
 
 elif page == "Currency Converter":
 
-    st.markdown('<div class="section-title">Currency Converter</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Advanced Currency Converter</div>', unsafe_allow_html=True)
 
-    amount = st.number_input("Amount", min_value=1.0, value=100.0, step=10.0)
+    a1, a2 = st.columns(2)
 
-    currency = st.selectbox(
-        "From Currency",
-        ["USD", "EUR", "GBP", "TRY", "AED", "SAR", "KWD"]
-    )
+    with a1:
+        converter_amount = st.number_input(
+            "Enter amount",
+            min_value=1.0,
+            value=100.0,
+            step=10.0,
+            key="converter_amount"
+        )
 
-    converted = amount * df[currency].iloc[-1]
+    with a2:
+        converter_currency = st.selectbox(
+            "Currency",
+            ["USD", "EUR", "GBP", "TRY", "AED", "SAR", "KWD"],
+            key="converter_currency"
+        )
+
+    converter_rate = float(latest[converter_currency])
+    converter_result = converter_amount * converter_rate
 
     st.metric(
         "Converted Value",
-        f"{converted:,.0f} IQD"
+        f"{converter_result:,.0f} IQD"
     )
+
+    st.markdown('<div class="section-title">Quick USD Values</div>', unsafe_allow_html=True)
 
     q1, q2, q3, q4 = st.columns(4)
 
