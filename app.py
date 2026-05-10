@@ -2,18 +2,39 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 import pandas as pd
 
-# =========================================
+# =========================
 # PAGE CONFIG
-# =========================================
+# =========================
 
 st.set_page_config(
-    page_title="IQ Iraqi Dinar Live",
+    page_title="IQD Live Engine",
     layout="wide"
 )
 
-# =========================================
-# DARK MODE STYLE
-# =========================================
+# =========================
+# AUTO REFRESH
+# =========================
+
+st_autorefresh(interval=60000, key="refresh")
+
+# =========================
+# LOAD DATA
+# =========================
+
+df = pd.read_csv("usd_history.csv")
+
+# =========================
+# LATEST VALUES
+# =========================
+
+latest_usd = df["USD"].iloc[-1]
+latest_market = df["Market"].iloc[-1]
+latest_buy = df["Buy"].iloc[-1]
+latest_sell = df["Sell"].iloc[-1]
+
+# =========================
+# PAGE STYLE
+# =========================
 
 st.markdown("""
 <style>
@@ -27,7 +48,7 @@ div[data-testid="metric-container"] {
     background-color: #1E1E1E;
     border: 1px solid #333;
     padding: 15px;
-    border-radius: 12px;
+    border-radius: 15px;
 }
 
 h1, h2, h3 {
@@ -37,91 +58,38 @@ h1, h2, h3 {
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================
-# AUTO REFRESH
-# =========================================
-
-st_autorefresh(interval=60000, key="refresh")
-
-# =========================================
-# LOAD DATA
-# =========================================
-
-df = pd.read_csv("usd_history.csv")
-
-# =========================================
-# LATEST VALUES
-# =========================================
-
-latest_usd = df["USD"].iloc[-1]
-
-market_price = df["Market"].iloc[-1]
-buy_price = df["Buy"].iloc[-1]
-sell_price = df["Sell"].iloc[-1]
-
-cbi_rate = 1320
-market_difference = round(latest_usd - cbi_rate, 2)
-
-# =========================================
-# SAFE CHANGE CALCULATIONS
-# =========================================
-
-if len(df) > 1:
-
-    usd_change = round(df["USD"].iloc[-1] - df["USD"].iloc[-2], 2)
-    eur_change = round(df["EUR"].iloc[-1] - df["EUR"].iloc[-2], 2)
-    gbp_change = round(df["GBP"].iloc[-1] - df["GBP"].iloc[-2], 2)
-    try_change = round(df["TRY"].iloc[-1] - df["TRY"].iloc[-2], 2)
-
-    aed_change = round(df["AED"].iloc[-1] - df["AED"].iloc[-2], 2)
-    sar_change = round(df["SAR"].iloc[-1] - df["SAR"].iloc[-2], 2)
-    kwd_change = round(df["KWD"].iloc[-1] - df["KWD"].iloc[-2], 2)
-
-else:
-
-    usd_change = 0
-    eur_change = 0
-    gbp_change = 0
-    try_change = 0
-
-    aed_change = 0
-    sar_change = 0
-    kwd_change = 0
-
-# =========================================
+# =========================
 # TITLE
-# =========================================
+# =========================
 
-st.title("🇮🇶 IQ Iraqi Dinar Live Exchange Rates")
+st.title("🇮🇶 Iraqi Dinar Live Engine")
 
-# =========================================
+# =========================
 # LIVE TICKER
-# =========================================
+# =========================
 
 ticker_text = f"""
-USD: {df['USD'].iloc[-1]} |
-EUR: {df['EUR'].iloc[-1]} |
-GBP: {df['GBP'].iloc[-1]} |
-TRY: {df['TRY'].iloc[-1]} |
-AED: {df['AED'].iloc[-1]} |
-SAR: {df['SAR'].iloc[-1]} |
-KWD: {df['KWD'].iloc[-1]}
+Market: {latest_market:,.0f} IQD |
+Buy: {latest_buy:,.0f} IQD |
+Sell: {latest_sell:,.0f} IQD
 """
 
 st.markdown(
     f"""
-    <marquee style='color:lime;
-                    font-size:22px;
-                    font-weight:bold;'>
-        {ticker_text}
+    <marquee style='
+        color:lime;
+        font-size:22px;
+        font-weight:bold;
+    '>
+    {ticker_text}
     </marquee>
     """,
     unsafe_allow_html=True
 )
 
-# =========================================
+# =========================
 # SIDEBAR
-# =========================================
+# =========================
 
 page = st.sidebar.radio(
     "Navigation",
@@ -132,197 +100,76 @@ page = st.sidebar.radio(
     ]
 )
 
-# =========================================
-# DASHBOARD PAGE
-# =========================================
+# =========================
+# DASHBOARD
+# =========================
 
 if page == "Dashboard":
 
-    st.subheader("Live Exchange Rates")
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    col1.metric(
-        "USD",
-        df["USD"].iloc[-1],
-        usd_change
-    )
-
-    col2.metric(
-        "EUR",
-        df["EUR"].iloc[-1],
-        eur_change
-    )
-
-    col3.metric(
-        "GBP",
-        df["GBP"].iloc[-1],
-        gbp_change
-    )
-
-    col4.metric(
-        "TRY",
-        df["TRY"].iloc[-1],
-        try_change
-    )
-
-    col5, col6, col7 = st.columns(3)
-
-    col5.metric(
-        "AED",
-        df["AED"].iloc[-1],
-        aed_change
-    )
-
-    col6.metric(
-        "SAR",
-        df["SAR"].iloc[-1],
-        sar_change
-    )
-
-    col7.metric(
-        "KWD",
-        df["KWD"].iloc[-1],
-        kwd_change
-    )
-
-    # =====================================
-    # BUY / SELL
-    # =====================================
-
-    st.subheader("Market Buy / Sell")
-
-    b1, b2, b3 = st.columns(3)
-
-    b1.metric(
-        "Market Price",
-        f"{market_price:,.0f} IQD"
-    )
-
-    b2.metric(
-        "Buy USD",
-        f"{buy_price:,.0f} IQD"
-    )
-
-    b3.metric(
-        "Sell USD",
-        f"{sell_price:,.0f} IQD"
-    )
-
-    # =====================================
-    # CBI COMPARISON
-    # =====================================
-
-    st.subheader("CBI Official Comparison")
+    st.subheader("USD IQD Market")
 
     c1, c2, c3 = st.columns(3)
 
-    c1.metric("Market USD", latest_usd)
-
-    c2.metric("CBI Official", cbi_rate)
-
-    c3.metric(
-        "Difference",
-        market_difference
+    c1.metric(
+        "Market Price",
+        f"{latest_market:,.0f} IQD"
     )
 
-    # =====================================
-    # TREND
-    # =====================================
+    c2.metric(
+        "Buy USD",
+        f"{latest_buy:,.0f} IQD"
+    )
 
-    st.subheader("Market Trend")
+    c3.metric(
+        "Sell USD",
+        f"{latest_sell:,.0f} IQD"
+    )
 
-    if usd_change > 0:
+    st.subheader("Foreign Currency Rates")
 
-        st.success("🟢 USD Trend: Bullish")
+    col1, col2, col3, col4 = st.columns(4)
 
-    elif usd_change < 0:
+    col1.metric("USD", df["USD"].iloc[-1])
+    col2.metric("EUR", df["EUR"].iloc[-1])
+    col3.metric("GBP", df["GBP"].iloc[-1])
+    col4.metric("TRY", df["TRY"].iloc[-1])
 
-        st.error("🔴 USD Trend: Bearish")
+    col5, col6, col7 = st.columns(3)
 
-    else:
+    col5.metric("AED", df["AED"].iloc[-1])
+    col6.metric("SAR", df["SAR"].iloc[-1])
+    col7.metric("KWD", df["KWD"].iloc[-1])
 
-        st.warning("🟡 USD Trend: Neutral")
+    st.subheader("USD Historical Chart")
 
-# =========================================
-# HISTORICAL DATA PAGE
-# =========================================
+    st.line_chart(df["Market"])
 
-if page == "Historical Data":
+# =========================
+# HISTORICAL DATA
+# =========================
+
+elif page == "Historical Data":
 
     st.subheader("Latest Market Records")
 
-    st.dataframe(df.tail(10))
+    st.dataframe(df.tail(20))
 
-    chart_currency = st.selectbox(
-        "Select Currency Chart",
-        [
-            "USD",
-            "EUR",
-            "GBP",
-            "TRY",
-            "AED",
-            "SAR",
-            "KWD"
-        ]
-    )
+# =========================
+# CONVERTER
+# =========================
 
-    st.line_chart(df[chart_currency])
-
-# =========================================
-# CONVERTER PAGE
-# =========================================
-
-if page == "Currency Converter":
+elif page == "Currency Converter":
 
     st.subheader("Currency Converter")
 
-    currency = st.selectbox(
-        "Select Currency",
-        [
-            "USD",
-            "EUR",
-            "GBP",
-            "TRY",
-            "AED",
-            "SAR",
-            "KWD"
-        ]
-    )
-
     amount = st.number_input(
-        "Enter Amount",
+        "USD Amount",
         min_value=1.0,
         value=100.0
     )
 
-    latest_rate = df[currency].iloc[-1]
-
-    converted_value = amount * latest_rate
+    converted = amount * latest_market
 
     st.success(
-        f"{amount} {currency} = {round(converted_value, 2)} IQD"
+        f"{amount} USD = {converted:,.0f} IQD"
     )
-
-    # =====================================
-    # ALERTS
-    # =====================================
-
-    st.subheader("USD Price Alert")
-
-    alert_price = st.number_input(
-        "Alert me when USD exceeds:",
-        value=1540.0
-    )
-
-    if latest_usd >= alert_price:
-
-        st.error(
-            f"🚨 ALERT: USD reached {latest_usd}"
-        )
-
-    else:
-
-        st.success(
-            f"USD still below alert price ({alert_price})"
-        )
