@@ -93,6 +93,10 @@ lang_label = st.sidebar.radio(
 code = LANGS[lang_label]["code"]
 dir_ = LANGS[lang_label]["dir"]
 T = TEXT[code]
+T.setdefault("market_price", T.get("market", "Market"))
+T.setdefault("data_points", T.get("records", "Data Points"))
+T.setdefault("feed_ok", "Live feed active")
+T.setdefault("feed_stale", "Live feed may be delayed")
 T.setdefault("data_points", {"en": "Data Points", "ar": "نقاط البيانات", "ku": "خاڵەکانی داتا"}.get(code, "Data Points"))
 T.setdefault("feed_ok", {"en": "Live feed active", "ar": "التحديث المباشر يعمل", "ku": "نوێکردنەوەی ڕاستەوخۆ کاردەکات"}.get(code, "Live feed active"))
 T.setdefault("feed_stale", {"en": "Live feed may be delayed", "ar": "قد يكون التحديث المباشر متأخراً", "ku": "نوێکردنەوەی ڕاستەوخۆ لەوانەیە دوا کەوتبێت"}.get(code, "Live feed may be delayed"))
@@ -243,46 +247,46 @@ def make_chart(data: pd.DataFrame, y_col: str, chart_type: str):
         .configure_axis(labelFontSize=12, titleFontSize=12, titleColor="#667085")
     )
 
-st.markdown(f"""
+st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-:root {{ --blue:#07145f; --blue2:#0b74e5; --text:#13213c; --muted:#667085; --border:#e4eaf3; --bg:#f5f7fb; --green:#12a05c; --red:#d92d20; --yellow:#b7791f; }}
-html, body, [class*="css"] {{ font-family:'Inter',sans-serif; }}
-.stApp {{ background:var(--bg); color:var(--text); }}
-.block-container {{ padding-top:0!important; padding-left:3rem!important; padding-right:3rem!important; max-width:1320px!important; }}
-section[data-testid="stSidebar"] {{ background:#fff!important; border-right:1px solid var(--border); }}
-section[data-testid="stSidebar"] * {{ color:var(--text)!important; }}
-.hero {{ background:linear-gradient(135deg,#07145f 0%,#0b1f7a 60%,#081139 100%); margin-left:-3rem; margin-right:-3rem; padding:28px 3rem 118px; color:#fff; position:relative; overflow:hidden; }}
-.hero::after {{ content:""; position:absolute; left:-10%; right:-10%; bottom:-76px; height:135px; background:var(--bg); border-radius:50% 50% 0 0; }}
-.hero-inner {{ max-width:1120px; margin:0 auto; position:relative; z-index:2; }}
-.navbar {{ display:flex; align-items:center; justify-content:space-between; margin-bottom:46px; }}
-.brand {{ font-size:28px; font-weight:900; letter-spacing:-.04em; }}
-.navlinks span {{ margin-left:26px; color:#e7eeff; font-weight:800; font-size:14px; }}
-.hero-title {{ text-align:center; font-size:clamp(32px,5vw,54px); line-height:1.05; font-weight:900; letter-spacing:-.06em; margin-bottom:14px; }}
-.hero-subtitle {{ text-align:center; color:#dbe7ff; font-size:18px; font-weight:500; }}
-.live-pill {{ display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); color:#dbe7ff; font-weight:800; font-size:13px; margin-bottom:18px; }}
-.dot {{ width:8px; height:8px; border-radius:999px; background:#22c55e; box-shadow:0 0 0 5px rgba(34,197,94,.16); }}
-.converter-card,.chart-card {{ background:#fff; border:1px solid var(--border); box-shadow:0 16px 36px rgba(15,23,42,.08); }}
-.converter-card {{ border-radius:30px; padding:28px; margin-top:-78px; position:relative; z-index:10; }}
-.chart-card {{ border-radius:22px; padding:22px; }}
-.card-title {{ font-size:18px; font-weight:900; color:var(--text); margin-bottom:4px; }}
-.card-subtitle,.small-note {{ color:var(--muted); font-size:13px; }}
-.section-title {{ color:var(--text); font-size:28px; font-weight:900; letter-spacing:-.04em; margin:38px 0 16px; }}
-.big-result {{ color:#07145f; font-size:clamp(24px,4vw,36px); font-weight:900; letter-spacing:-.04em; margin-top:12px; }}
-.trend-card {{ padding:16px 20px; border-radius:18px; font-weight:900; margin:18px 0; }}
-.trend-up {{ background:#e8f8ef; color:var(--green); border:1px solid #b7ebce; }}
-.trend-down {{ background:#fff1f0; color:var(--red); border:1px solid #ffc9c4; }}
-.trend-neutral {{ background:#fff8e6; color:var(--yellow); border:1px solid #f6d98b; }}
-.rate-card {{ background:#fff; border:1px solid var(--border); border-radius:18px; padding:17px 20px; margin-bottom:10px; box-shadow:0 8px 20px rgba(15,23,42,.05); display:flex; align-items:center; justify-content:space-between; }}
-.rate-left {{ display:flex; align-items:center; gap:12px; }} .flag {{ font-size:28px; }} .rate-name {{ font-weight:900; color:var(--text); }} .rate-code,.rate-unit {{ font-size:12px; color:var(--muted); font-weight:700; }} .rate-value {{ color:var(--blue2); font-weight:900; font-size:18px; text-align:right; }}
-div[data-testid="metric-container"] {{ background:#fff; border:1px solid var(--border); border-radius:20px; padding:20px; box-shadow:0 10px 26px rgba(15,23,42,.06); }}
-div[data-testid="metric-container"] label {{ color:var(--muted)!important; font-weight:800!important; text-transform:uppercase; letter-spacing:.04em; font-size:.78rem!important; }}
-div[data-testid="metric-container"] [data-testid="stMetricValue"] {{ color:var(--text)!important; font-weight:900!important; font-size:1.85rem!important; }}
-.stTabs [data-baseweb="tab-list"] {{ gap:8px; background:#f8fafc; border:1px solid var(--border); padding:8px; border-radius:999px; }}
-.stTabs [data-baseweb="tab"] {{ border-radius:999px; padding:10px 20px; font-weight:900; }}
-.stTabs [aria-selected="true"] {{ background:#263a5f!important; color:#fff!important; }}
-.footer {{ text-align:center; color:var(--muted); font-size:13px; padding:44px 0 30px; }}
-@media(max-width:768px){{ .block-container{{padding-left:1rem!important;padding-right:1rem!important}} .hero{{margin-left:-1rem;margin-right:-1rem;padding:24px 1rem 100px}} .navbar{{display:block;text-align:center;margin-bottom:30px}} .navlinks{{display:none}} .converter-card{{padding:18px;border-radius:22px}} .rate-card{{display:block}} .rate-value,.rate-unit{{text-align:left;margin-top:8px}} }}
+:root { --blue:#07145f; --blue2:#0b74e5; --text:#13213c; --muted:#667085; --border:#e4eaf3; --bg:#f5f7fb; --green:#12a05c; --red:#d92d20; --yellow:#b7791f; }
+html, body, [class*="css"] { font-family:'Inter',sans-serif; }
+.stApp { background:var(--bg); color:var(--text); }
+.block-container { padding-top:0!important; padding-left:3rem!important; padding-right:3rem!important; max-width:1320px!important; }
+section[data-testid="stSidebar"] { background:#fff!important; border-right:1px solid var(--border); }
+section[data-testid="stSidebar"] * { color:var(--text)!important; }
+.hero { background:linear-gradient(135deg,#07145f 0%,#0b1f7a 60%,#081139 100%); margin-left:-3rem; margin-right:-3rem; padding:28px 3rem 118px; color:#fff; position:relative; overflow:hidden; }
+.hero::after { content:""; position:absolute; left:-10%; right:-10%; bottom:-76px; height:135px; background:var(--bg); border-radius:50% 50% 0 0; }
+.hero-inner { max-width:1120px; margin:0 auto; position:relative; z-index:2; }
+.navbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:46px; }
+.brand { font-size:28px; font-weight:900; letter-spacing:-.04em; }
+.navlinks span { margin-left:26px; color:#e7eeff; font-weight:800; font-size:14px; }
+.hero-title { text-align:center; font-size:clamp(32px,5vw,54px); line-height:1.05; font-weight:900; letter-spacing:-.06em; margin-bottom:14px; }
+.hero-subtitle { text-align:center; color:#dbe7ff; font-size:18px; font-weight:500; }
+.live-pill { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); color:#dbe7ff; font-weight:800; font-size:13px; margin-bottom:18px; }
+.dot { width:8px; height:8px; border-radius:999px; background:#22c55e; box-shadow:0 0 0 5px rgba(34,197,94,.16); }
+.converter-card,.chart-card { background:#fff; border:1px solid var(--border); box-shadow:0 16px 36px rgba(15,23,42,.08); }
+.converter-card { border-radius:30px; padding:28px; margin-top:-78px; position:relative; z-index:10; }
+.chart-card { border-radius:22px; padding:22px; }
+.card-title { font-size:18px; font-weight:900; color:var(--text); margin-bottom:4px; }
+.card-subtitle,.small-note { color:var(--muted); font-size:13px; }
+.section-title { color:var(--text); font-size:28px; font-weight:900; letter-spacing:-.04em; margin:38px 0 16px; }
+.big-result { color:#07145f; font-size:clamp(24px,4vw,36px); font-weight:900; letter-spacing:-.04em; margin-top:12px; }
+.trend-card { padding:16px 20px; border-radius:18px; font-weight:900; margin:18px 0; }
+.trend-up { background:#e8f8ef; color:var(--green); border:1px solid #b7ebce; }
+.trend-down { background:#fff1f0; color:var(--red); border:1px solid #ffc9c4; }
+.trend-neutral { background:#fff8e6; color:var(--yellow); border:1px solid #f6d98b; }
+.rate-card { background:#fff; border:1px solid var(--border); border-radius:18px; padding:17px 20px; margin-bottom:10px; box-shadow:0 8px 20px rgba(15,23,42,.05); display:flex; align-items:center; justify-content:space-between; }
+.rate-left { display:flex; align-items:center; gap:12px; } .flag { font-size:28px; } .rate-name { font-weight:900; color:var(--text); } .rate-code,.rate-unit { font-size:12px; color:var(--muted); font-weight:700; } .rate-value { color:var(--blue2); font-weight:900; font-size:18px; text-align:right; }
+div[data-testid="metric-container"] { background:#fff; border:1px solid var(--border); border-radius:20px; padding:20px; box-shadow:0 10px 26px rgba(15,23,42,.06); }
+div[data-testid="metric-container"] label { color:var(--muted)!important; font-weight:800!important; text-transform:uppercase; letter-spacing:.04em; font-size:.78rem!important; }
+div[data-testid="metric-container"] [data-testid="stMetricValue"] { color:var(--text)!important; font-weight:900!important; font-size:1.85rem!important; }
+.stTabs [data-baseweb="tab-list"] { gap:8px; background:#f8fafc; border:1px solid var(--border); padding:8px; border-radius:999px; }
+.stTabs [data-baseweb="tab"] { border-radius:999px; padding:10px 20px; font-weight:900; }
+.stTabs [aria-selected="true"] { background:#263a5f!important; color:#fff!important; }
+.footer { text-align:center; color:var(--muted); font-size:13px; padding:44px 0 30px; }
+@media(max-width:768px){ .block-container{padding-left:1rem!important;padding-right:1rem!important} .hero{margin-left:-1rem;margin-right:-1rem;padding:24px 1rem 100px} .navbar{display:block;text-align:center;margin-bottom:30px} .navlinks{display:none} .converter-card{padding:18px;border-radius:22px} .rate-card{display:block} .rate-value,.rate-unit{text-align:left;margin-top:8px} }
 
 /* Final professional UX polish */
 .sticky-rate{position:sticky;top:0;z-index:999;background:#07145f;color:white;padding:10px 16px;border-radius:0 0 16px 16px;font-weight:900;text-align:center;box-shadow:0 10px 24px rgba(15,23,42,.16);}
