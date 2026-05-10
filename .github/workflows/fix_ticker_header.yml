@@ -12,52 +12,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Patch ticker position and header text
+      - name: Patch ticker safely
         run: |
           python - <<'PY'
           from pathlib import Path
+
           p = Path('app.py')
           s = p.read_text(encoding='utf-8')
 
-          # Replace delayed/live pill with clear last updated timestamp.
-          s = s.replace(
-              '<div class="pill"><span class="dot"></span>{T[\'live\'] if age_min <= 180 else T[\'stale\']}</div>',
-              '<div class="pill"><span class="dot"></span>{T[\'last\']}: {latest_time}</div>'
-          )
+          s = s.replace("{T['live'] if age_min <= 180 else T['stale']}", "{T['last']}: {latest_time}")
 
-          # Replace confusing 99 minute display with seconds-to-next-refresh countdown.
-          s = s.replace(
-              'minutes_display = min(age_min, 99)\nprogress_value = min(100, max(6, int((minutes_display % 60) / 60 * 100)))',
-              'seconds_left = 60 - datetime.now().second\nif seconds_left <= 0:\n    seconds_left = 60\nprogress_value = int(((60 - seconds_left) / 60) * 100)'
-          )
-          s = s.replace('<div class="update-number">{minutes_display}</div>', '<div class="update-number">{seconds_left}</div>')
+          old_timer = """minutes_display = min(age_min, 99)
+progress_value = min(100, max(6, int((minutes_display % 60) / 60 * 100)))"""
+          new_timer = """seconds_left = 60 - datetime.now().second
+if seconds_left <= 0:
+    seconds_left = 60
+progress_value = int(((60 - seconds_left) / 60) * 100)"""
+          s = s.replace(old_timer, new_timer)
+          s = s.replace('{minutes_display}</div>', '{seconds_left}</div>')
 
-          # Make the ticker sit cleanly inside the white rounded space and prevent horizontal overflow.
-          extra_css = '''
-/* Bursa ticker header polish */
-.main-card{overflow:hidden!important;padding-top:14px!important;}
-.live-panel{margin:-4px 0 16px!important;border-radius:24px!important;background:#ffffff!important;box-shadow:0 12px 32px rgba(15,23,42,.08)!important;overflow:hidden!important;}
-.ticker-window{max-width:100%!important;overflow:hidden!important;background:#06133e!important;}
-.ticker-track{will-change:transform!important;}
-.update-number::after{content:"s";font-size:12px;font-weight:900;margin-left:1px;color:#657089;}
+          css = '''
+/* Final ticker layout patch */
+.main-card{overflow:hidden!important;padding-top:10px!important;}
+.live-panel{margin:-8px 0 14px!important;border-radius:24px!important;background:#fff!important;overflow:hidden!important;box-shadow:0 12px 32px rgba(15,23,42,.08)!important;}
+.ticker-title{display:none!important;}
+.ticker-window{max-width:100%!important;overflow:hidden!important;background:#06133e!important;border-radius:20px!important;}
+.update-number::after{content:"s";font-size:11px;font-weight:900;margin-left:1px;color:#657089;}
 .pill{max-width:100%;white-space:nowrap;}
 @media(max-width:768px){
-  .main-card{padding-top:10px!important;overflow:hidden!important;}
-  .live-panel{grid-template-columns:62px 1fr!important;margin:-2px 0 12px!important;padding:10px!important;border-radius:18px!important;}
-  .update-clock{width:56px!important;height:56px!important;}
-  .update-clock:after{width:42px!important;height:42px!important;}
-  .update-number{font-size:17px!important;}
-  .update-number::after{font-size:9px!important;}
-  .ticker-title{display:none!important;}
-  .ticker-sub{font-size:10px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .ticker-track{font-size:14px!important;}
+  .main-card{overflow:hidden!important;padding-top:8px!important;}
+  .live-panel{grid-template-columns:58px 1fr!important;gap:8px!important;padding:9px!important;margin:-4px 0 10px!important;border-radius:18px!important;}
+  .update-clock{width:54px!important;height:54px!important;}
+  .update-clock:after{width:40px!important;height:40px!important;}
+  .update-number{font-size:16px!important;}
+  .update-number::after{font-size:8px!important;}
+  .ticker-window{padding:9px 0!important;}
+  .ticker-track{font-size:14px!important;animation-duration:22s!important;}
   .ticker-item{margin:0 10px!important;}
-  .toprow{align-items:flex-start!important;}
+  .ticker-sub{font-size:10px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
   .pill{font-size:10px!important;padding:6px 8px!important;}
 }
 '''
-          if 'Bursa ticker header polish' not in s:
-              s = s.replace('</style>', extra_css + '\n</style>')
+          if 'Final ticker layout patch' not in s:
+              s = s.replace('</style>', css + '\n</style>')
 
           p.write_text(s, encoding='utf-8')
           PY
@@ -70,5 +67,5 @@ jobs:
           git config user.name github-actions
           git config user.email actions@github.com
           git add app.py
-          git commit -m "Polish ticker header and update countdown" || echo "No changes"
+          git commit -m "Fix ticker header and countdown" || echo "No changes"
           git push
