@@ -146,17 +146,7 @@ h1,h2,h3{color:var(--text)!important;}
 .dot{width:8px;height:8px;border-radius:50%;background:#28d779;box-shadow:0 0 0 5px rgba(40,215,121,.18);}
 .hero-title{font-size:clamp(34px,6vw,58px);font-weight:900;letter-spacing:-.06em;line-height:1.02;text-align:center;margin:10px 0;}
 .hero-sub{font-size:17px;color:#dce7ff;text-align:center;margin-bottom:12px;}
-.main-card{background:#fff;border:1px solid var(--line);border-radius:30px;padding:18px 28px 28px;margin-top:-38px;box-shadow:0 18px 42px rgba(15,23,42,.10);position:relative;z-index:5;}
-.live-panel{border:1px solid #e5eaf3;background:linear-gradient(135deg,#fff,#f7fbff);border-radius:26px;padding:16px 18px;margin:0 0 18px;display:grid;grid-template-columns:118px 1fr;gap:16px;align-items:center;box-shadow:0 10px 28px rgba(15,23,42,.07);}
-.update-clock{width:94px;height:94px;border-radius:50%;background:conic-gradient(#0974e8 var(--progress),#dce6f7 0);display:flex;align-items:center;justify-content:center;position:relative;margin:auto;}
-.update-clock:after{content:"";width:74px;height:74px;background:#fff;border-radius:50%;position:absolute;}
-.update-number{position:relative;z-index:2;font-size:28px;font-weight:800;color:#17213a;}
-.ticker-title{font-size:12px;color:#657089;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
-.ticker-window{overflow:hidden;white-space:nowrap;border-radius:18px;background:#06133e;padding:12px 0;border:1px solid rgba(255,255,255,.08);}
-.ticker-track{display:inline-block;animation:ticker 28s linear infinite;color:#fff;font-size:18px;font-weight:900;}
-.ticker-item{display:inline-block;margin:0 18px;}
-.up{color:#24d37a}.down{color:#ff5d7d}.flat{color:#dbe7ff}.ticker-sub{font-size:13px;color:#657089;font-weight:700;margin-top:7px;}
-@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.main-card{background:#fff;border:1px solid var(--line);border-radius:30px;padding:28px;margin-top:-38px;box-shadow:0 18px 42px rgba(15,23,42,.10);position:relative;z-index:5;}
 .section{font-size:28px;font-weight:900;letter-spacing:-.04em;margin:28px 0 14px;}
 .small{color:var(--muted);font-size:13px;font-weight:600;}
 .result{font-size:clamp(30px,5vw,46px);font-weight:900;color:#07145f;letter-spacing:-.05em;margin:8px 0;}
@@ -178,10 +168,8 @@ div[data-testid="stMetricValue"]{font-weight:900!important;}
   .block-container{padding:0 .8rem 1.5rem!important;}
   .topbar{margin:0 -.8rem;padding:18px .8rem 34px;}
   .toprow{margin-bottom:12px}.brand{font-size:32px}.hero-title{font-size:31px}.hero-sub{font-size:14px;}
-  .main-card{margin-top:-24px;border-radius:22px;padding:12px 12px 18px;}
-  .live-panel{grid-template-columns:78px 1fr;gap:10px;padding:12px;border-radius:20px;margin-bottom:14px;}
-  .update-clock{width:68px;height:68px}.update-clock:after{width:52px;height:52px}.update-number{font-size:21px}.ticker-track{font-size:15px;animation-duration:22s}.ticker-item{margin:0 11px}.ticker-window{padding:10px 0}.ticker-sub{font-size:11px}
-  .market-strip{grid-template-columns:1fr;gap:10px}.mini-value{font-size:27px;}
+  .main-card{margin-top:-24px;border-radius:22px;padding:16px;}
+      .market-strip{grid-template-columns:1fr;gap:10px}.mini-value{font-size:27px;}
   .rate-row{grid-template-columns:48px 1fr 96px;gap:10px;padding:14px;border-radius:18px;}
   .rate-row .spark{grid-column:2/4;text-align:left;font-size:17px;}
   .code{font-size:22px}.value{font-size:21px}.section{font-size:25px;margin:24px 0 12px;}.stat-grid{grid-template-columns:repeat(2,1fr)}.stat .num{font-size:18px;white-space:normal}.chart-card{padding:8px;border-radius:18px}.pill{font-size:11px;padding:6px 10px}
@@ -281,25 +269,12 @@ pct = (change / prev * 100) if prev else 0
 change_class = "change-up" if change > 0 else "change-down" if change < 0 else "change-flat"
 arrow = "🔺" if change > 0 else "🔻" if change < 0 else "●"
 age_min = max(0, int((pd.Timestamp.now() - latest["Time"]).total_seconds() / 60))
-minutes_display = min(age_min, 99)
-progress_value = min(100, max(6, int((minutes_display % 60) / 60 * 100)))
-
-parts = []
-for cur in CURRENCIES:
-    current = float(latest[cur])
-    old = float(df[cur].iloc[-2]) if len(df) > 1 else current
-    diff = current - old
-    icon = "🔺" if diff > 0 else "🔻" if diff < 0 else "●"
-    cls = "up" if diff > 0 else "down" if diff < 0 else "flat"
-    label = "USD/100" if cur == "USD" else cur
-    parts.append(f'<span class="ticker-item {cls}">{icon} {label}: {current:,.2f} IQD</span>')
-ticker_html = "".join(parts + parts)
 
 st.markdown(f"""
 <div class="topbar">
   <div class="toprow">
     <div class="brand">IQD Live</div>
-    <div class="pill"><span class="dot"></span>{T['live'] if age_min <= 180 else T['stale']}</div>
+    <div class="pill"><span class="dot"></span>{T['last']}: {latest_time}</div>
   </div>
   <div class="hero-title">{T['title']}</div>
   <div class="hero-sub">{T['subtitle']}</div>
@@ -307,21 +282,6 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="main-card">', unsafe_allow_html=True)
-st.markdown(
-    f'''
-    <div class="live-panel">
-      <div class="update-clock" style="--progress:{progress_value}%">
-        <div class="update-number">{minutes_display}</div>
-      </div>
-      <div>
-        <div class="ticker-title">{T['ticker']}</div>
-        <div class="ticker-window"><div class="ticker-track">{ticker_html}</div></div>
-        <div class="ticker-sub">{T['last']}: {latest_time} • {T['source']}: PMCgroup • {T['auto']}</div>
-      </div>
-    </div>
-    ''',
-    unsafe_allow_html=True,
-)
 
 tab_convert, tab_charts, tab_history, tab_alerts = st.tabs([T["converter"], T["charts"], T["history"], T["alerts"]])
 
