@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
-st.set_page_config(page_title="Iraqi Dinar Live", page_icon="🇮🇶", layout="wide")
+st.set_page_config(page_title="Iraqi Dinar Live", page_icon="🇮🇶", layout="wide", initial_sidebar_state="collapsed")
 st_autorefresh(interval=60_000, key="refresh")
 
 # -------------------------
@@ -175,11 +175,11 @@ st.markdown(f"""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 :root {{ --blue:#07145f; --blue2:#0b74e5; --text:#13213c; --muted:#667085; --border:#e4eaf3; --bg:#f5f7fb; --green:#12a05c; --red:#d92d20; --yellow:#b7791f; }}
 html, body, [class*="css"] {{ font-family:'Inter',sans-serif; }}
-.stApp {{ background:var(--bg); color:var(--text); direction:{dir_}; }}
+.stApp {{ background:var(--bg); color:var(--text); }}
 .block-container {{ padding-top:0!important; padding-left:3rem!important; padding-right:3rem!important; max-width:1320px!important; }}
 section[data-testid="stSidebar"] {{ background:#fff!important; border-right:1px solid var(--border); }}
 section[data-testid="stSidebar"] * {{ color:var(--text)!important; }}
-.hero {{ background:linear-gradient(135deg,#07145f 0%,#0b1f7a 60%,#081139 100%); margin-left:-3rem; margin-right:-3rem; padding:28px 3rem 118px; color:#fff; position:relative; overflow:hidden; direction:{dir_}; }}
+.hero {{ background:linear-gradient(135deg,#07145f 0%,#0b1f7a 60%,#081139 100%); margin-left:-3rem; margin-right:-3rem; padding:28px 3rem 118px; color:#fff; position:relative; overflow:hidden; }}
 .hero::after {{ content:""; position:absolute; left:-10%; right:-10%; bottom:-76px; height:135px; background:var(--bg); border-radius:50% 50% 0 0; }}
 .hero-inner {{ max-width:1120px; margin:0 auto; position:relative; z-index:2; }}
 .navbar {{ display:flex; align-items:center; justify-content:space-between; margin-bottom:46px; }}
@@ -190,7 +190,7 @@ section[data-testid="stSidebar"] * {{ color:var(--text)!important; }}
 .live-pill {{ display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); color:#dbe7ff; font-weight:800; font-size:13px; margin-bottom:18px; }}
 .dot {{ width:8px; height:8px; border-radius:999px; background:#22c55e; box-shadow:0 0 0 5px rgba(34,197,94,.16); }}
 .converter-card,.chart-card {{ background:#fff; border:1px solid var(--border); box-shadow:0 16px 36px rgba(15,23,42,.08); }}
-.converter-card {{ border-radius:30px; padding:28px; margin-top:-78px; position:relative; z-index:10; direction:{dir_}; }}
+.converter-card {{ border-radius:30px; padding:28px; margin-top:-78px; position:relative; z-index:10; }}
 .chart-card {{ border-radius:22px; padding:22px; }}
 .card-title {{ font-size:18px; font-weight:900; color:var(--text); margin-bottom:4px; }}
 .card-subtitle,.small-note {{ color:var(--muted); font-size:13px; }}
@@ -260,7 +260,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 if page == "dashboard":
     st.markdown(f'<div class="section-title">{T["overview"]}</div>', unsafe_allow_html=True)
     a, b, c = st.columns(3)
-    a.metric(T["market_price"], f"{latest_market:,.0f} IQD", f"{change:,.0f} IQD")
+    a.metric(T["market"], f"{latest_market:,.0f} IQD", f"{change:,.0f} IQD")
     b.metric(T["buy"], f"{latest_buy:,.0f} IQD")
     c.metric(T["sell"], f"{latest_sell:,.0f} IQD")
     st.markdown(f'<div class="trend-card {trend_class}">{trend}</div>', unsafe_allow_html=True)
