@@ -1,0 +1,55 @@
+name: Fix Style Block Now
+
+on:
+  push:
+    paths:
+      - ".github/workflows/fix_style_block_now.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fix CSS style block f-string syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('app.py')
+          s = p.read_text(encoding='utf-8')
+
+          # The CSS <style> block contains normal CSS braces. It must NOT be an f-string.
+          s = s.replace('st.markdown(f"""\n<style>', 'st.markdown("""\n<style>', 1)
+
+          # Fix any accidentally doubled CSS braces after removing f-string.
+          start = s.find('st.markdown("""\n<style>')
+          if start != -1:
+              end = s.find('</style>\n""", unsafe_allow_html=True)', start)
+              if end != -1:
+                  block = s[start:end]
+                  block = block.replace('{{', '{').replace('}}', '}')
+                  s = s[:start] + block + s[end:]
+
+          # Safety: make sure common missing keys cannot crash app.
+          marker = 'T = TEXT[code]\n'
+          fallback = 'T.setdefault("market_price", T.get("market", "Market"))\nT.setdefault("data_points", T.get("records", "Data Points"))\nT.setdefault("feed_ok", "Live feed active")\nT.setdefault("feed_stale", "Live feed may be delayed")\n'
+          if marker in s and 'T.setdefault("market_price"' not in s:
+              s = s.replace(marker, marker + fallback)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Verify app syntax
+        run: python -m py_compile app.py
+
+      - name: Commit fix
+        run: |
+          git config user.name github-actions
+          git config user.email actions@github.com
+          git add app.py
+          git commit -m "Fix Streamlit CSS style block syntax" || echo "No changes"
+          git push
