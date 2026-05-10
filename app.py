@@ -271,7 +271,7 @@ page = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"**Last update:**  \n{latest_time}")
-st.sidebar.markdown("**Source:** PMCgroup")
+st.sidebar.markdown("**** Source Local Market")
 
 # =========================
 # TITLE + TICKER
