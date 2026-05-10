@@ -18,7 +18,6 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
-
         with:
           python-version: "3.11"
 
@@ -29,13 +28,12 @@ jobs:
           pip install requests
 
       - name: Run Update Script
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          STRING_SESSION: ${{ secrets.STRING_SESSION }}
 
-  env:
-    API_ID: ${{ secrets.API_ID }}
-    API_HASH: ${{ secrets.API_HASH }}
-    STRING_SESSION: ${{ secrets.STRING_SESSION }}
-
-  run: python update_rates.py
+        run: python update_rates.py
 
       - name: Commit Updated CSV
         run: |
