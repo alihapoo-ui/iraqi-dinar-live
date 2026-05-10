@@ -1,0 +1,19 @@
+name: Mobile CSS Only
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          cat >> app.py <<'EOF'
+
+# mobile polish marker
+EOF
+          git config user.name github-actions
+          git config user.email actions@github.com
+          git add app.py
+          git commit -m "Mobile polish marker" || true
+          git push
