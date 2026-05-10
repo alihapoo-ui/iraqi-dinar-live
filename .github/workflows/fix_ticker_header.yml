@@ -1,6 +1,9 @@
-name: Fix Ticker Header
+name: Remove Bursa Ticker
 
 on:
+  push:
+    paths:
+      - ".github/workflows/fix_ticker_header.yml"
   workflow_dispatch:
 
 permissions:
@@ -12,49 +15,61 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Patch ticker safely
+      - name: Remove Bursa ticker from app.py
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           p = Path('app.py')
           s = p.read_text(encoding='utf-8')
 
+          # Remove the ticker/update panel render block.
+          s = re.sub(
+              r"\nst\.markdown\(\s*f'''\s*<div class=\"live-panel\">.*?</div>\s*'''\s*,\s*unsafe_allow_html=True,\s*\)\n",
+              "\n",
+              s,
+              flags=re.S,
+          )
+
+          # Remove ticker data-building logic.
+          s = re.sub(
+              r"\nminutes_display = min\(age_min, 99\)\nprogress_value = min\(100, max\(6, int\(\(minutes_display % 60\) / 60 \* 100\)\)\)\n\nparts = \[\].*?ticker_html = \"\"\.join\(parts \+ parts\)\n",
+              "\n",
+              s,
+              flags=re.S,
+          )
+
+          # Remove Bursa ticker CSS only. Keep normal layout and rate-row sparkline CSS.
+          css_remove_patterns = [
+              r"\.live-panel\{.*?\}\n",
+              r"\.update-clock\{.*?\}\n",
+              r"\.update-clock:after\{.*?\}\n",
+              r"\.update-number\{.*?\}\n",
+              r"\.ticker-title\{.*?\}\n",
+              r"\.ticker-window\{.*?\}\n",
+              r"\.ticker-track\{.*?\}\n",
+              r"\.ticker-item\{.*?\}\n",
+              r"\.up\{color:#24d37a\}\.down\{color:#ff5d7d\}\.flat\{color:#dbe7ff\}\.ticker-sub\{.*?\}\n",
+              r"@keyframes ticker\{.*?\}\n",
+              r"\s*\.live-panel\{.*?\}\n",
+              r"\s*\.update-clock\{.*?\}\.update-clock:after\{.*?\}\.update-number\{.*?\}\.ticker-track\{.*?\}\.ticker-item\{.*?\}\.ticker-window\{.*?\}\.ticker-sub\{.*?\}\n",
+          ]
+          for pattern in css_remove_patterns:
+              s = re.sub(pattern, "", s, flags=re.S)
+
+          # Restore card spacing after removing the top panel.
+          s = s.replace(
+              ".main-card{background:#fff;border:1px solid var(--line);border-radius:30px;padding:18px 28px 28px;margin-top:-38px;box-shadow:0 18px 42px rgba(15,23,42,.10);position:relative;z-index:5;}",
+              ".main-card{background:#fff;border:1px solid var(--line);border-radius:30px;padding:28px;margin-top:-38px;box-shadow:0 18px 42px rgba(15,23,42,.10);position:relative;z-index:5;}"
+          )
+          s = s.replace(
+              ".main-card{margin-top:-24px;border-radius:22px;padding:12px 12px 18px;}",
+              ".main-card{margin-top:-24px;border-radius:22px;padding:16px;}"
+          )
+
+          # Make status pill show last updated instead of delayed label.
           s = s.replace("{T['live'] if age_min <= 180 else T['stale']}", "{T['last']}: {latest_time}")
-
-          old_timer = """minutes_display = min(age_min, 99)
-progress_value = min(100, max(6, int((minutes_display % 60) / 60 * 100)))"""
-          new_timer = """seconds_left = 60 - datetime.now().second
-if seconds_left <= 0:
-    seconds_left = 60
-progress_value = int(((60 - seconds_left) / 60) * 100)"""
-          s = s.replace(old_timer, new_timer)
-          s = s.replace('{minutes_display}</div>', '{seconds_left}</div>')
-
-          css = '''
-/* Final ticker layout patch */
-.main-card{overflow:hidden!important;padding-top:10px!important;}
-.live-panel{margin:-8px 0 14px!important;border-radius:24px!important;background:#fff!important;overflow:hidden!important;box-shadow:0 12px 32px rgba(15,23,42,.08)!important;}
-.ticker-title{display:none!important;}
-.ticker-window{max-width:100%!important;overflow:hidden!important;background:#06133e!important;border-radius:20px!important;}
-.update-number::after{content:"s";font-size:11px;font-weight:900;margin-left:1px;color:#657089;}
-.pill{max-width:100%;white-space:nowrap;}
-@media(max-width:768px){
-  .main-card{overflow:hidden!important;padding-top:8px!important;}
-  .live-panel{grid-template-columns:58px 1fr!important;gap:8px!important;padding:9px!important;margin:-4px 0 10px!important;border-radius:18px!important;}
-  .update-clock{width:54px!important;height:54px!important;}
-  .update-clock:after{width:40px!important;height:40px!important;}
-  .update-number{font-size:16px!important;}
-  .update-number::after{font-size:8px!important;}
-  .ticker-window{padding:9px 0!important;}
-  .ticker-track{font-size:14px!important;animation-duration:22s!important;}
-  .ticker-item{margin:0 10px!important;}
-  .ticker-sub{font-size:10px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
-  .pill{font-size:10px!important;padding:6px 8px!important;}
-}
-'''
-          if 'Final ticker layout patch' not in s:
-              s = s.replace('</style>', css + '\n</style>')
 
           p.write_text(s, encoding='utf-8')
           PY
@@ -67,5 +82,5 @@ progress_value = int(((60 - seconds_left) / 60) * 100)"""
           git config user.name github-actions
           git config user.email actions@github.com
           git add app.py
-          git commit -m "Fix ticker header and countdown" || echo "No changes"
+          git commit -m "Remove Bursa ticker temporarily" || echo "No changes"
           git push
