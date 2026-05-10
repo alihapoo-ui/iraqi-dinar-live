@@ -1,0 +1,43 @@
+name: Backfill IQD History
+
+on:
+  workflow_dispatch:
+
+jobs:
+  backfill-history:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Requirements
+        run: |
+          pip install pandas
+          pip install telethon
+          pip install requests
+
+      - name: Run Backfill Script
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          STRING_SESSION: ${{ secrets.STRING_SESSION }}
+        run: python backfill_history.py
+
+      - name: Commit Backfilled CSV
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+
+          git add usd_history.csv
+
+          git commit -m "Backfill last 30 days IQD history" || echo "No changes"
+
+          git push
