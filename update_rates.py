@@ -29,13 +29,16 @@ client = TelegramClient(
 
 channel = "PMCgroup"
 
-client.start()
+client.connect()
 
 # =========================================
 # FETCH TELEGRAM MESSAGES
 # =========================================
 
-messages = client.get_messages(channel, limit=20)
+messages = client.get_messages(
+    channel,
+    limit=20
+)
 
 usd_iqd = None
 
@@ -60,7 +63,7 @@ for msg in messages:
         break
 
 # =========================================
-# FETCH FX RATES
+# FETCH FX API
 # =========================================
 
 if usd_iqd:
@@ -146,5 +149,15 @@ if usd_iqd:
         "usd_history.csv",
         index=False
     )
+
+    print("CSV Updated Successfully")
+
+else:
+
+    print("USD/IQD rate not found.")
+
+# =========================================
+# DISCONNECT CLIENT
+# =========================================
 
 client.disconnect()
