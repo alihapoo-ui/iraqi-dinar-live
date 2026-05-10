@@ -93,6 +93,9 @@ lang_label = st.sidebar.radio(
 code = LANGS[lang_label]["code"]
 dir_ = LANGS[lang_label]["dir"]
 T = TEXT[code]
+T.setdefault("data_points", {"en": "Data Points", "ar": "نقاط البيانات", "ku": "خاڵەکانی داتا"}.get(code, "Data Points"))
+T.setdefault("feed_ok", {"en": "Live feed active", "ar": "التحديث المباشر يعمل", "ku": "نوێکردنەوەی ڕاستەوخۆ کاردەکات"}.get(code, "Live feed active"))
+T.setdefault("feed_stale", {"en": "Live feed may be delayed", "ar": "قد يكون التحديث المباشر متأخراً", "ku": "نوێکردنەوەی ڕاستەوخۆ لەوانەیە دوا کەوتبێت"}.get(code, "Live feed may be delayed"))
 
 @st.cache_data(ttl=55)
 def load_data() -> pd.DataFrame:
@@ -134,11 +137,18 @@ latest_buy = float(latest["Buy"])
 latest_sell = float(latest["Sell"])
 latest_usd = float(latest["USD"])
 change = latest_market - float(df["Market"].iloc[-2]) if len(df) >= 2 else 0.0
+previous_market = float(df["Market"].iloc[-2]) if len(df) >= 2 else latest_market
+pct_change = (change / previous_market * 100) if previous_market else 0.0
+try:
+    data_age_minutes = max(0, int((pd.Timestamp.now() - latest["Time"]).total_seconds() / 60))
+except Exception:
+    data_age_minutes = 0
+feed_is_stale = data_age_minutes > 180
 
 if change > 0:
-    trend = f"📈 {T['up']} {change:,.0f} IQD"; trend_class = "trend-up"
+    trend = f"📈 {T['up']} {change:,.0f} IQD ({pct_change:+.2f}%)"; trend_class = "trend-up"
 elif change < 0:
-    trend = f"📉 {T['down']} {abs(change):,.0f} IQD"; trend_class = "trend-down"
+    trend = f"📉 {T['down']} {abs(change):,.0f} IQD ({pct_change:+.2f}%)"; trend_class = "trend-down"
 else:
     trend = f"● {T['stable']}"; trend_class = "trend-neutral"
 
@@ -158,17 +168,80 @@ def filter_period(data: pd.DataFrame, period: str) -> pd.DataFrame:
 def csv_bytes(data: pd.DataFrame) -> bytes:
     return data.to_csv(index=False).encode("utf-8")
 
+def sparkline_text(values) -> str:
+    vals = [float(v) for v in values if pd.notna(v)]
+    if len(vals) < 2:
+        return "▁▁▁▁▁▁"
+    chars = "▁▂▃▄▅▆▇█"
+    lo, hi = min(vals), max(vals)
+    if hi == lo:
+        return "▃" * min(len(vals), 12)
+    return "".join(chars[min(7, int((v - lo) / (hi - lo) * 7))] for v in vals[-12:])
+
 def make_chart(data: pd.DataFrame, y_col: str, chart_type: str):
-    base = alt.Chart(data).encode(
-        x=alt.X("Time:T", title=None, axis=alt.Axis(labelColor="#667085", gridColor="#f1f5f9")),
-        y=alt.Y(f"{y_col}:Q", title=y_col, scale=alt.Scale(zero=False), axis=alt.Axis(labelColor="#667085", gridColor="#f1f5f9")),
-        tooltip=[alt.Tooltip("Time:T", title="Time", format="%Y-%m-%d %H:%M"), alt.Tooltip(f"{y_col}:Q", title=y_col, format=",.2f")],
+    plot_df = data.copy().dropna(subset=["Time", y_col])
+    if plot_df.empty:
+        return alt.Chart(pd.DataFrame({"Time": [], y_col: []})).mark_line()
+
+    y_min = float(plot_df[y_col].min())
+    y_max = float(plot_df[y_col].max())
+    span = max(y_max - y_min, 1)
+    pad = max(span * 0.22, 600 if y_col == "Market" else 1)
+    y_domain = [max(0, y_min - pad), y_max + pad]
+
+    y_title = T.get("per_100", "IQD per 100 USD") if y_col == "Market" else f"{T.get('per_1', 'IQD per 1')} {y_col}"
+    nearest = alt.selection_point(nearest=True, on="mouseover", fields=["Time"], empty=False)
+
+    base = alt.Chart(plot_df).encode(
+        x=alt.X("Time:T", title=None, axis=alt.Axis(labelColor="#667085", grid=False, labelPadding=10)),
+        y=alt.Y(
+            f"{y_col}:Q",
+            title=y_title,
+            scale=alt.Scale(domain=y_domain, nice=False, zero=False),
+            axis=alt.Axis(labelColor="#667085", grid=True, gridColor="#EEF2F7", tickCount=5),
+        ),
     )
-    if chart_type == T["line"] or chart_type == "Line":
-        chart = base.mark_line(color="#0B74E5", strokeWidth=3)
+
+    line = base.mark_line(color="#0B74E5", strokeWidth=3.5, interpolate="monotone").encode(
+        tooltip=[
+            alt.Tooltip("Time:T", title="Time", format="%Y-%m-%d %H:%M"),
+            alt.Tooltip(f"{y_col}:Q", title=y_col, format=",.2f"),
+        ]
+    )
+
+    area = base.mark_area(
+        color=alt.Gradient(
+            gradient="linear",
+            stops=[
+                alt.GradientStop(color="#0B74E5", offset=0),
+                alt.GradientStop(color="rgba(11,116,229,0.04)", offset=1),
+            ],
+            x1=1, x2=1, y1=1, y2=0,
+        ),
+        opacity=0.25,
+        interpolate="monotone",
+    )
+
+    selector = base.mark_circle(size=60, color="#0B74E5", opacity=0).add_params(nearest)
+    active = base.mark_circle(size=90, color="#0B74E5").encode(opacity=alt.condition(nearest, alt.value(1), alt.value(0)))
+    rule = base.mark_rule(color="#94A3B8").encode(
+        opacity=alt.condition(nearest, alt.value(0.45), alt.value(0)),
+        tooltip=[
+            alt.Tooltip("Time:T", title="Time", format="%Y-%m-%d %H:%M"),
+            alt.Tooltip(f"{y_col}:Q", title=y_col, format=",.2f"),
+        ],
+    )
+
+    if chart_type == T.get("line", "Line") or chart_type == "Line":
+        chart = line + selector + active + rule
     else:
-        chart = base.mark_area(color="#0B74E5", opacity=0.16, line={"color": "#0B74E5", "strokeWidth": 3})
-    return chart.properties(height=380).configure_view(strokeWidth=0).interactive()
+        chart = area + line + selector + active + rule
+
+    return (
+        chart.properties(height=340)
+        .configure_view(strokeWidth=0)
+        .configure_axis(labelFontSize=12, titleFontSize=12, titleColor="#667085")
+    )
 
 st.markdown(f"""
 <style>
@@ -210,6 +283,26 @@ div[data-testid="metric-container"] [data-testid="stMetricValue"] {{ color:var(-
 .stTabs [aria-selected="true"] {{ background:#263a5f!important; color:#fff!important; }}
 .footer {{ text-align:center; color:var(--muted); font-size:13px; padding:44px 0 30px; }}
 @media(max-width:768px){{ .block-container{{padding-left:1rem!important;padding-right:1rem!important}} .hero{{margin-left:-1rem;margin-right:-1rem;padding:24px 1rem 100px}} .navbar{{display:block;text-align:center;margin-bottom:30px}} .navlinks{{display:none}} .converter-card{{padding:18px;border-radius:22px}} .rate-card{{display:block}} .rate-value,.rate-unit{{text-align:left;margin-top:8px}} }}
+
+/* Final professional UX polish */
+.sticky-rate{position:sticky;top:0;z-index:999;background:#07145f;color:white;padding:10px 16px;border-radius:0 0 16px 16px;font-weight:900;text-align:center;box-shadow:0 10px 24px rgba(15,23,42,.16);}
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:8px;}
+.stat-card{background:#fff;border:1px solid #e4eaf3;border-radius:20px;padding:18px;box-shadow:0 10px 26px rgba(15,23,42,.06);min-width:0;}
+.stat-label{font-size:12px;color:#667085;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
+.stat-value{font-size:clamp(22px,3vw,34px);font-weight:900;color:#13213c;line-height:1.05;white-space:nowrap;}
+.stat-unit{font-size:12px;color:#667085;font-weight:800;margin-top:4px;}
+.sparkline{font-family:monospace;color:#0B74E5;font-weight:900;font-size:18px;letter-spacing:1px;margin-bottom:4px;text-align:right;}
+.rate-right{text-align:right;}
+.chart-card{background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%)!important;border:1px solid #e4eaf3!important;border-radius:24px!important;padding:22px!important;box-shadow:0 18px 42px rgba(15,23,42,.08)!important;}
+@media(max-width:768px){
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .stat-card{padding:13px;border-radius:16px;}
+  .stat-value{font-size:20px;white-space:normal;word-break:keep-all;}
+  .stat-unit{font-size:11px;}
+  .sticky-rate{font-size:13px;padding:8px 12px;}
+  .sparkline{text-align:left;font-size:15px;}
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -226,6 +319,13 @@ st.sidebar.markdown(f"**{T['source']}:** PMCgroup")
 st.markdown(f"""
 <div class="hero"><div class="hero-inner"><div class="navbar"><div class="brand">IQD Live</div><div class="navlinks"><span>{T['converter']}</span><span>{T['rates']}</span><span>{T['charts']}</span><span>{T['history']}</span></div></div><div style="text-align:center;"><span class="live-pill"><span class="dot"></span> {T['live']} • {latest_time}</span></div><div class="hero-title">{T['title']}</div><div class="hero-subtitle">{T['subtitle']}</div></div></div>
 """, unsafe_allow_html=True)
+
+
+st.markdown(f'<div class="sticky-rate">USD/IQD {latest_market:,.0f} • {trend}</div>', unsafe_allow_html=True)
+if feed_is_stale:
+    st.warning(f"{T.get('feed_stale', 'Live feed may be delayed')} — {T['last']}: {latest_time}")
+else:
+    st.caption(f"✅ {T.get('feed_ok', 'Live feed active')} — {T['last']}: {latest_time}")
 
 st.markdown('<div class="converter-card">', unsafe_allow_html=True)
 st.markdown(f'<div class="card-title">{T["converter"]}</div><div class="card-subtitle">{T["market_ref"]}</div>', unsafe_allow_html=True)
@@ -271,14 +371,21 @@ if page == "dashboard":
         name = CURRENCY_NAMES[code][cur]
         if search and search not in cur and search not in name.upper():
             continue
-        st.markdown(f'<div class="rate-card"><div class="rate-left"><div class="flag">{CURRENCY_FLAGS[cur]}</div><div><div class="rate-name">{name}</div><div class="rate-code">{cur}</div></div></div><div><div class="rate-value">{float(latest[cur]):,.2f} IQD</div><div class="rate-unit">{T["per_1"]} {cur}</div></div></div>', unsafe_allow_html=True)
+        spark = sparkline_text(df[cur].tail(12))
+        st.markdown(f'<div class="rate-card"><div class="rate-left"><div class="flag">{CURRENCY_FLAGS[cur]}</div><div><div class="rate-name">{name}</div><div class="rate-code">{cur}</div></div></div><div class="rate-right"><div class="sparkline">{spark}</div><div class="rate-value">{float(latest[cur]):,.2f} IQD</div><div class="rate-unit">{T["per_1"]} {cur}</div></div></div>', unsafe_allow_html=True)
 
     st.markdown(f'<div class="section-title">{T["stats"]}</div>', unsafe_allow_html=True)
-    s1, s2, s3, s4 = st.columns(4)
-    s1.metric(T["highest"], f"{df['Market'].max():,.0f} IQD")
-    s2.metric(T["lowest"], f"{df['Market'].min():,.0f} IQD")
-    s3.metric(T["average"], f"{df['Market'].mean():,.0f} IQD")
-    s4.metric(T["records"], f"{len(df):,.0f}")
+    st.markdown(
+        f"""
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">{T['highest']}</div><div class="stat-value">{df['Market'].max():,.0f}</div><div class="stat-unit">IQD</div></div>
+            <div class="stat-card"><div class="stat-label">{T['lowest']}</div><div class="stat-value">{df['Market'].min():,.0f}</div><div class="stat-unit">IQD</div></div>
+            <div class="stat-card"><div class="stat-label">{T['average']}</div><div class="stat-value">{df['Market'].mean():,.0f}</div><div class="stat-unit">IQD</div></div>
+            <div class="stat-card"><div class="stat-label">{T.get('data_points', 'Data Points')}</div><div class="stat-value">{len(df):,.0f}</div><div class="stat-unit">Snapshots</div></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     st.markdown(f'<div class="section-title">{T["chart"]}</div>', unsafe_allow_html=True)
     x1, x2, _ = st.columns([1, 1, 2])
