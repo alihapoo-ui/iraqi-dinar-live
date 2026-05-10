@@ -25,7 +25,6 @@ TEXT = {
         "subtitle": "Live USD/IQD market rates from PMCgroup with charts and currency conversion.",
         "converter": "Currency converter",
         "charts": "Currency charts",
-        "rates": "Rates",
         "history": "History",
         "alerts": "Alerts",
         "amount": "Amount",
@@ -38,9 +37,7 @@ TEXT = {
         "source": "Source",
         "live": "Live feed active",
         "stale": "Live feed may be delayed",
-        "one_usd": "100 USD market reference",
         "popular": "Popular currencies",
-        "add_currency": "Add currency",
         "period": "Period",
         "high": "High",
         "low": "Low",
@@ -51,17 +48,16 @@ TEXT = {
         "create_alert": "Create alert",
         "above": "Market is above your alert level",
         "below": "Market is below your alert level",
-        "up": "up",
-        "down": "down",
-        "stable": "stable",
         "footer": "Rates are informational and may vary by exchange office, spread, and timing.",
+        "ticker": "Live Bursa ticker",
+        "updated_ago": "min ago",
+        "auto": "Auto refresh every minute",
     },
     "ar": {
         "title": "الدينار العراقي مباشر",
         "subtitle": "سعر الدولار مقابل الدينار من PMCgroup مع الرسوم والتحويل.",
         "converter": "محول العملات",
         "charts": "رسوم العملات",
-        "rates": "الأسعار",
         "history": "السجل",
         "alerts": "التنبيهات",
         "amount": "المبلغ",
@@ -74,9 +70,7 @@ TEXT = {
         "source": "المصدر",
         "live": "التحديث المباشر يعمل",
         "stale": "قد يكون التحديث متأخراً",
-        "one_usd": "سعر السوق لكل 100 دولار",
         "popular": "العملات الرئيسية",
-        "add_currency": "إضافة عملة",
         "period": "الفترة",
         "high": "الأعلى",
         "low": "الأدنى",
@@ -87,17 +81,16 @@ TEXT = {
         "create_alert": "إنشاء تنبيه",
         "above": "السوق أعلى من مستوى التنبيه",
         "below": "السوق أقل من مستوى التنبيه",
-        "up": "ارتفاع",
-        "down": "انخفاض",
-        "stable": "مستقر",
         "footer": "الأسعار معلوماتية وقد تختلف حسب مكتب الصرافة والسبريد والتوقيت.",
+        "ticker": "شريط الأسعار المباشر",
+        "updated_ago": "دقيقة مضت",
+        "auto": "تحديث تلقائي كل دقيقة",
     },
     "ku": {
         "title": "دیناری عێراقی ڕاستەوخۆ",
         "subtitle": "نرخی دۆلار بە دینار لە PMCgroup لەگەڵ چارت و گۆڕینی دراو.",
         "converter": "گۆڕینی دراو",
         "charts": "چارتەکانی دراو",
-        "rates": "نرخەکان",
         "history": "مێژوو",
         "alerts": "ئاگادارکردنەوە",
         "amount": "بڕ",
@@ -110,9 +103,7 @@ TEXT = {
         "source": "سەرچاوە",
         "live": "نوێکردنەوەی ڕاستەوخۆ کاردەکات",
         "stale": "نوێکردنەوە لەوانەیە دوا کەوتبێت",
-        "one_usd": "نرخی بازاڕ بۆ 100 دۆلار",
         "popular": "دراوە گرنگەکان",
-        "add_currency": "زیادکردنی دراو",
         "period": "ماوە",
         "high": "بەرزترین",
         "low": "نزمترین",
@@ -123,22 +114,14 @@ TEXT = {
         "create_alert": "دروستکردنی ئاگاداری",
         "above": "بازاڕ لە ئاستی ئاگاداری بەرزترە",
         "below": "بازاڕ لە ئاستی ئاگاداری خوارترە",
-        "up": "بەرزبوونەوە",
-        "down": "دابەزین",
-        "stable": "جێگیر",
         "footer": "نرخەکان زانیاریین و دەتوانن بە پێی صرافە و کات جیاواز بن.",
+        "ticker": "تیکەری ڕاستەوخۆی بازاڕ",
+        "updated_ago": "خولەک لەمەوبەر",
+        "auto": "هەر خولەکێک خۆکار نوێ دەبێتەوە",
     },
 }
 
-FLAGS = {
-    "USD": "🇺🇸",
-    "EUR": "🇪🇺",
-    "GBP": "🇬🇧",
-    "TRY": "🇹🇷",
-    "AED": "🇦🇪",
-    "SAR": "🇸🇦",
-    "KWD": "🇰🇼",
-}
+FLAGS = {"USD": "🇺🇸", "EUR": "🇪🇺", "GBP": "🇬🇧", "TRY": "🇹🇷", "AED": "🇦🇪", "SAR": "🇸🇦", "KWD": "🇰🇼"}
 NAMES = {
     "en": {"USD": "US Dollar", "EUR": "Euro", "GBP": "British Pound", "TRY": "Turkish Lira", "AED": "UAE Dirham", "SAR": "Saudi Riyal", "KWD": "Kuwaiti Dinar"},
     "ar": {"USD": "الدولار الأمريكي", "EUR": "اليورو", "GBP": "الجنيه الإسترليني", "TRY": "الليرة التركية", "AED": "الدرهم الإماراتي", "SAR": "الريال السعودي", "KWD": "الدينار الكويتي"},
@@ -156,14 +139,24 @@ html,body,[class*="css"]{font-family:'Inter',sans-serif!important;}
 .block-container{padding:0 2.2rem 2rem!important;max-width:1180px!important;}
 section[data-testid="stSidebar"]{background:#fff!important;border-right:1px solid var(--line);}
 h1,h2,h3{color:var(--text)!important;}
-.topbar{background:linear-gradient(135deg,#07145f,#0c1e78);margin:0 -2.2rem;padding:24px 2.2rem 58px;color:white;}
+.topbar{background:linear-gradient(135deg,#07145f,#0c1e78);margin:0 -2.2rem;padding:24px 2.2rem 50px;color:white;}
 .toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;}
 .brand{font-weight:900;font-size:34px;letter-spacing:-.06em;}
 .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);padding:8px 12px;border-radius:999px;font-weight:800;font-size:13px;color:#e7efff;}
 .dot{width:8px;height:8px;border-radius:50%;background:#28d779;box-shadow:0 0 0 5px rgba(40,215,121,.18);}
 .hero-title{font-size:clamp(34px,6vw,58px);font-weight:900;letter-spacing:-.06em;line-height:1.02;text-align:center;margin:10px 0;}
 .hero-sub{font-size:17px;color:#dce7ff;text-align:center;margin-bottom:12px;}
-.main-card{background:#fff;border:1px solid var(--line);border-radius:30px;padding:28px;margin-top:-38px;box-shadow:0 18px 42px rgba(15,23,42,.10);position:relative;z-index:5;}
+.main-card{background:#fff;border:1px solid var(--line);border-radius:30px;padding:18px 28px 28px;margin-top:-38px;box-shadow:0 18px 42px rgba(15,23,42,.10);position:relative;z-index:5;}
+.live-panel{border:1px solid #e5eaf3;background:linear-gradient(135deg,#fff,#f7fbff);border-radius:26px;padding:16px 18px;margin:0 0 18px;display:grid;grid-template-columns:118px 1fr;gap:16px;align-items:center;box-shadow:0 10px 28px rgba(15,23,42,.07);}
+.update-clock{width:94px;height:94px;border-radius:50%;background:conic-gradient(#0974e8 var(--progress),#dce6f7 0);display:flex;align-items:center;justify-content:center;position:relative;margin:auto;}
+.update-clock:after{content:"";width:74px;height:74px;background:#fff;border-radius:50%;position:absolute;}
+.update-number{position:relative;z-index:2;font-size:28px;font-weight:800;color:#17213a;}
+.ticker-title{font-size:12px;color:#657089;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
+.ticker-window{overflow:hidden;white-space:nowrap;border-radius:18px;background:#06133e;padding:12px 0;border:1px solid rgba(255,255,255,.08);}
+.ticker-track{display:inline-block;animation:ticker 28s linear infinite;color:#fff;font-size:18px;font-weight:900;}
+.ticker-item{display:inline-block;margin:0 18px;}
+.up{color:#24d37a}.down{color:#ff5d7d}.flat{color:#dbe7ff}.ticker-sub{font-size:13px;color:#657089;font-weight:700;margin-top:7px;}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .section{font-size:28px;font-weight:900;letter-spacing:-.04em;margin:28px 0 14px;}
 .small{color:var(--muted);font-size:13px;font-weight:600;}
 .result{font-size:clamp(30px,5vw,46px);font-weight:900;color:#07145f;letter-spacing:-.05em;margin:8px 0;}
@@ -185,7 +178,9 @@ div[data-testid="stMetricValue"]{font-weight:900!important;}
   .block-container{padding:0 .8rem 1.5rem!important;}
   .topbar{margin:0 -.8rem;padding:18px .8rem 34px;}
   .toprow{margin-bottom:12px}.brand{font-size:32px}.hero-title{font-size:31px}.hero-sub{font-size:14px;}
-  .main-card{margin-top:-24px;border-radius:22px;padding:16px;}
+  .main-card{margin-top:-24px;border-radius:22px;padding:12px 12px 18px;}
+  .live-panel{grid-template-columns:78px 1fr;gap:10px;padding:12px;border-radius:20px;margin-bottom:14px;}
+  .update-clock{width:68px;height:68px}.update-clock:after{width:52px;height:52px}.update-number{font-size:21px}.ticker-track{font-size:15px;animation-duration:22s}.ticker-item{margin:0 11px}.ticker-window{padding:10px 0}.ticker-sub{font-size:11px}
   .market-strip{grid-template-columns:1fr;gap:10px}.mini-value{font-size:27px;}
   .rate-row{grid-template-columns:48px 1fr 96px;gap:10px;padding:14px;border-radius:18px;}
   .rate-row .spark{grid-column:2/4;text-align:left;font-size:17px;}
@@ -284,8 +279,21 @@ prev = float(df["Market"].iloc[-2]) if len(df) > 1 else market
 change = market - prev
 pct = (change / prev * 100) if prev else 0
 change_class = "change-up" if change > 0 else "change-down" if change < 0 else "change-flat"
-arrow = "↗" if change > 0 else "↘" if change < 0 else "•"
+arrow = "🔺" if change > 0 else "🔻" if change < 0 else "●"
 age_min = max(0, int((pd.Timestamp.now() - latest["Time"]).total_seconds() / 60))
+minutes_display = min(age_min, 99)
+progress_value = min(100, max(6, int((minutes_display % 60) / 60 * 100)))
+
+parts = []
+for cur in CURRENCIES:
+    current = float(latest[cur])
+    old = float(df[cur].iloc[-2]) if len(df) > 1 else current
+    diff = current - old
+    icon = "🔺" if diff > 0 else "🔻" if diff < 0 else "●"
+    cls = "up" if diff > 0 else "down" if diff < 0 else "flat"
+    label = "USD/100" if cur == "USD" else cur
+    parts.append(f'<span class="ticker-item {cls}">{icon} {label}: {current:,.2f} IQD</span>')
+ticker_html = "".join(parts + parts)
 
 st.markdown(f"""
 <div class="topbar">
@@ -299,6 +307,22 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="main-card">', unsafe_allow_html=True)
+st.markdown(
+    f'''
+    <div class="live-panel">
+      <div class="update-clock" style="--progress:{progress_value}%">
+        <div class="update-number">{minutes_display}</div>
+      </div>
+      <div>
+        <div class="ticker-title">{T['ticker']}</div>
+        <div class="ticker-window"><div class="ticker-track">{ticker_html}</div></div>
+        <div class="ticker-sub">{T['last']}: {latest_time} • {T['source']}: PMCgroup • {T['auto']}</div>
+      </div>
+    </div>
+    ''',
+    unsafe_allow_html=True,
+)
+
 tab_convert, tab_charts, tab_history, tab_alerts = st.tabs([T["converter"], T["charts"], T["history"], T["alerts"]])
 
 with tab_convert:
