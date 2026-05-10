@@ -125,6 +125,10 @@ if page == "Dashboard":
         f"{latest_sell:,.0f} IQD"
     )
 
+    # =========================
+    # FOREIGN CURRENCY RATES
+    # =========================
+
     st.subheader("Foreign Currency Rates")
 
     col1, col2, col3, col4 = st.columns(4)
@@ -140,9 +144,77 @@ if page == "Dashboard":
     col6.metric("SAR", df["SAR"].iloc[-1])
     col7.metric("KWD", df["KWD"].iloc[-1])
 
+    # =========================
+    # MARKET TREND
+    # =========================
+
+    st.subheader("Market Trend")
+
+    if len(df) >= 2:
+
+        latest_change = (
+            df["Market"].iloc[-1]
+            - df["Market"].iloc[-2]
+        )
+
+        if latest_change > 0:
+
+            st.success(
+                f"🟢 Bullish Market (+{latest_change:,.0f} IQD)"
+            )
+
+        elif latest_change < 0:
+
+            st.error(
+                f"🔴 Bearish Market ({latest_change:,.0f} IQD)"
+            )
+
+        else:
+
+            st.warning(
+                "🟡 Neutral Market"
+            )
+
+    # =========================
+    # HIGH / LOW
+    # =========================
+
+    highest_price = df["Market"].max()
+    lowest_price = df["Market"].min()
+
+    h1, h2 = st.columns(2)
+
+    h1.metric(
+        "Highest Recorded",
+        f"{highest_price:,.0f} IQD"
+    )
+
+    h2.metric(
+        "Lowest Recorded",
+        f"{lowest_price:,.0f} IQD"
+    )
+
+    # =========================
+    # CHART
+    # =========================
+
     st.subheader("USD Historical Chart")
 
-    st.line_chart(df["Market"])
+    chart_type = st.selectbox(
+        "Chart Type",
+        [
+            "Line",
+            "Area"
+        ]
+    )
+
+    if chart_type == "Line":
+
+        st.line_chart(df["Market"])
+
+    else:
+
+        st.area_chart(df["Market"])
 
 # =========================
 # HISTORICAL DATA
