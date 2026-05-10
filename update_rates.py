@@ -2,6 +2,12 @@ from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
 import os
 
+print("API_ID EXISTS:", "API_ID" in os.environ)
+print("API_HASH EXISTS:", "API_HASH" in os.environ)
+print("STRING EXISTS:", "STRING_SESSION" in os.environ)
+
+print("STRING LENGTH:", len(os.environ.get("STRING_SESSION", "")))
+
 api_id = int(os.environ["API_ID"])
 api_hash = os.environ["API_HASH"]
 string_session = os.environ["STRING_SESSION"]
@@ -14,6 +20,6 @@ client = TelegramClient(
 
 client.connect()
 
-print("SUCCESS LOGIN")
+print("AUTHORIZED:", client.is_user_authorized())
 
 client.disconnect()
