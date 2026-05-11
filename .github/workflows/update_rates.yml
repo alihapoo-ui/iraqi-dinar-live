@@ -43,4 +43,5 @@ jobs:
 
           git commit -m "Auto update IQD rates" || echo "No changes"
 
+          git pull --rebase
           git push
