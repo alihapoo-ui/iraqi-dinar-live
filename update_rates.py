@@ -18,6 +18,7 @@ CHANNEL = "PMCgroup"
 CSV_FILE = "usd_history.csv"
 IRAQ_TZ = ZoneInfo("Asia/Baghdad")
 CURRENCIES = ["EUR", "GBP", "TRY", "AED", "SAR", "KWD"]
+MAX_ROWS = 5000
 
 API_ID = int(os.environ["API_ID"])
 API_HASH = os.environ["API_HASH"]
@@ -66,10 +67,10 @@ def get_latest_pmc_rate() -> float:
 
             usd_rate = extract_usd_iqd(text)
             if usd_rate is not None:
-                print(f"USD/IQD found from PMCgroup: {usd_rate}")
+                print(f"USD/IQD found: {usd_rate}")
                 return usd_rate
 
-        raise RuntimeError("No valid USD/IQD pattern found in latest PMCgroup messages.")
+        raise RuntimeError("No valid USD/IQD pattern found in latest market messages.")
 
     finally:
         client.disconnect()
@@ -122,6 +123,11 @@ def update_csv(new_row: dict) -> None:
 
     df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
     df = df[columns]
+
+    # Keep the CSV small and fast for Streamlit.
+    if len(df) > MAX_ROWS:
+        df = df.tail(MAX_ROWS).reset_index(drop=True)
+
     df.to_csv(CSV_FILE, index=False)
 
     print("CSV updated successfully")
