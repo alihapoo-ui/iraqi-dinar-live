@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from datetime import datetime, timezone, timedelta
 import pandas as pd
 import requests
@@ -17,10 +18,46 @@ API_ID = int(os.getenv("API_ID", "0"))
 API_HASH = os.getenv("API_HASH", "")
 STRING_SESSION = os.getenv("STRING_SESSION", "")
 
+# Chat ID for PMC market (from environment or default)
+CHAT_ID = int(os.getenv("PMC_CHAT_ID", "-1001234567890"))
+
 # FX API configuration
 FX_BASE_URL = "https://api.exchangerate-api.com/v4/latest"
 
 CURRENCIES = ["EUR", "GBP", "TRY", "AED", "SAR", "KWD"]
+
+
+def extract_rate_from_message(message_text: str) -> float | None:
+    """
+    Extract USD/IQD rate from message text.
+    Looks for the last number that could be a rate (typically 1000-2500 for IQD).
+    Handles various formats and irrelevant text.
+    """
+    if not message_text:
+        return None
+    
+    try:
+        # Find all numbers in the message (including decimals)
+        numbers = re.findall(r'\d+(?:\.\d+)?', message_text)
+        
+        if not numbers:
+            return None
+        
+        # Convert to floats and get the last one
+        rates = [float(num) for num in numbers]
+        
+        # Filter for reasonable USD/IQD rates (typically 1000-2500)
+        valid_rates = [r for r in rates if 800 < r < 3000]
+        
+        if valid_rates:
+            # Return the last valid rate found
+            return valid_rates[-1]
+        
+        # If no valid range found, return the last number in the message
+        return rates[-1] if rates else None
+    
+    except Exception:
+        return None
 
 
 def get_latest_pmc_rate() -> float:
@@ -33,16 +70,17 @@ def get_latest_pmc_rate() -> float:
         client.connect()
         
         # Get the latest message from the PMC market channel
-        # Adjust chat ID based on your setup (-1001234567890 is just a placeholder)
-        messages = client.get_messages(-1001234567890, limit=1)  # Replace with actual chat ID
+        messages = client.get_messages(CHAT_ID, limit=1)
         
         if not messages:
             raise RuntimeError("No messages found in PMC market channel")
         
-        # Parse the rate from message text (adjust parsing logic as needed)
+        # Parse the rate from message text
         message_text = messages[0].text
-        # Example: extract rate from message
-        rate = float(message_text.split()[-2])  # Adjust based on actual format
+        rate = extract_rate_from_message(message_text)
+        
+        if rate is None:
+            raise RuntimeError(f"Could not extract rate from message: {message_text}")
         
         client.disconnect()
         return rate
