@@ -168,7 +168,7 @@ div[data-testid="stMetricValue"]{font-weight:900!important;}
 </style>
 """, unsafe_allow_html=True)
 
-@st.cache_data(ttl=55)
+@st.cache_data(ttl=20)
 def load_data() -> pd.DataFrame:
     df = pd.read_csv("usd_history.csv")
     missing = [c for c in COLUMNS if c not in df.columns]
@@ -203,6 +203,16 @@ def filter_period(data: pd.DataFrame, period: str) -> pd.DataFrame:
         return data.copy()
     out = data[data["Time"] >= cutoff].copy()
     return out if not out.empty else data.copy()
+
+
+
+def format_age_label(last_time: pd.Timestamp, lang: str) -> tuple[str, str]:
+    age_minutes = int((pd.Timestamp.now() - last_time).total_seconds() // 60)
+    if age_minutes <= 2:
+        return ("🟢 Live", "small")
+    if age_minutes <= 10:
+        return (f"🟡 Delayed {age_minutes}m", "small")
+    return (f"🔴 Stale {age_minutes}m", "small")
 
 def sparkline(vals) -> str:
     values = [float(v) for v in vals if pd.notna(v)]
@@ -251,6 +261,7 @@ T = TEXT[code]
 
 latest = df.iloc[-1]
 latest_time = latest["Time"].strftime("%Y-%m-%d %H:%M")
+status_label, status_class = format_age_label(pd.Timestamp(latest["Time"]), code)
 market = float(latest["Market"])
 buy = float(latest["Buy"])
 sell = float(latest["Sell"])
@@ -264,7 +275,7 @@ st.markdown(f"""
 <div class="topbar">
   <div class="toprow">
     <div class="brand">IQD Live</div>
-    <div class="pill"><span class="dot"></span>{T['last']}: {latest_time}</div>
+    <div class="pill"><span class="dot"></span>{T['last']}: {latest_time} • {status_label}</div>
   </div>
   <div class="hero-title">{T['title']}</div>
   <div class="hero-sub">{T['subtitle']}</div>

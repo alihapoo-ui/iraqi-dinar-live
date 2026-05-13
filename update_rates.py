@@ -113,6 +113,19 @@ def build_row(usd_rate: float, fx_rates: dict) -> dict:
     return row
 
 
+def get_last_usd_rate_from_csv() -> float | None:
+    if not os.path.exists(CSV_FILE):
+        return None
+    try:
+        df = pd.read_csv(CSV_FILE)
+        if "USD" not in df.columns or df.empty:
+            return None
+        usd = pd.to_numeric(df["USD"], errors="coerce").dropna()
+        return float(usd.iloc[-1]) if not usd.empty else None
+    except Exception:
+        return None
+
+
 def update_csv(new_row: dict) -> None:
     columns = ["Time", "USD", "EUR", "GBP", "TRY", "AED", "SAR", "KWD", "Market", "Buy", "Sell"]
 
@@ -139,7 +152,15 @@ def update_csv(new_row: dict) -> None:
 # =====================================================
 
 if __name__ == "__main__":
-    usd_rate = get_latest_pmc_rate()
+    try:
+        usd_rate = get_latest_pmc_rate()
+    except Exception as exc:
+        fallback = get_last_usd_rate_from_csv()
+        if fallback is None:
+            raise
+        print(f"Warning: failed to read Telegram rate ({exc}). Using last known USD rate: {fallback}")
+        usd_rate = fallback
+
     fx_rates = get_fx_rates()
     row = build_row(usd_rate, fx_rates)
     update_csv(row)
