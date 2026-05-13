@@ -1,0 +1,20 @@
+name: Validate App Syntax
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate python files compile
+        run: python -m py_compile app.py update_rates.py backfill_history.py
+      - name: Reject non-python header in app.py
+        run: |
+          head -n 1 app.py | grep -q '^from ' || (echo 'app.py header is invalid' && exit 1)
