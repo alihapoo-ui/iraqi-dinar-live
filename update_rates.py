@@ -19,7 +19,7 @@ API_HASH = os.getenv("API_HASH", "")
 STRING_SESSION = os.getenv("STRING_SESSION", "")
 
 # Chat ID for PMC market (from environment or default)
-CHAT_ID = int(os.getenv("PMC_CHAT_ID", "-1001234567890"))
+CHAT_ID = int(os.getenv("PMC_CHAT_ID", "-1001035883465"))
 
 # FX API configuration
 FX_BASE_URL = "https://api.exchangerate-api.com/v4/latest"
