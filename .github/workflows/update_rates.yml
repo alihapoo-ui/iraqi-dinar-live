@@ -2,11 +2,15 @@ name: Update IQD Rates
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "* * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: update-iqd-rates
+  cancel-in-progress: true
 
 jobs:
   update-rates:
@@ -15,6 +19,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -23,9 +29,12 @@ jobs:
 
       - name: Install Requirements
         run: |
-          pip install pandas
-          pip install telethon
-          pip install requests
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate updater source
+        run: |
+          head -n 1 update_rates.py | grep -q '^from __future__ import annotations' || (echo 'update_rates.py is corrupted at line 1' && exit 1)
 
       - name: Run Update Script
         env:
@@ -35,14 +44,21 @@ jobs:
         run: python update_rates.py
 
       - name: Commit Updated CSV
+        shell: bash
         run: |
+          set -euo pipefail
+          BRANCH="${GITHUB_REF_NAME}"
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-
-          git pull origin main --rebase
-
           git add usd_history.csv
-
-          git commit -m "Auto update IQD rates" || echo "No changes"
-
-          git push origin HEAD:main
+          if git diff --cached --quiet; then
+            echo "No CSV changes to commit"
+            exit 0
+          fi
+          git commit -m "Auto update IQD rates"
+          if ! git push origin "HEAD:$BRANCH"; then
+            echo "Initial push failed, syncing with origin and retrying..."
+            git fetch origin "$BRANCH"
+            git rebase "origin/$BRANCH"
+            git push origin "HEAD:$BRANCH"
+          fi
