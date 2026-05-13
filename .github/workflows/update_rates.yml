@@ -32,6 +32,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Validate updater source
+        run: |
+          head -n 1 update_rates.py | grep -q '^from __future__ import annotations' || (echo 'update_rates.py is corrupted at line 1' && exit 1)
+
       - name: Run Update Script
         env:
           API_ID: ${{ secrets.API_ID }}
