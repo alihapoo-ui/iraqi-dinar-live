@@ -49,6 +49,20 @@ TEXT = {
         "below": "Market is below your target price",
         "footer": "Rates are informational and may vary by exchange office, spread, and timing.",
         "stats": "Stats",
+        "more": "More",
+        "alerts": "Alerts",
+        "create_alert": "Create alert",
+        "alert_type": "Alert type",
+        "above_alert": "Above target",
+        "below_alert": "Below target",
+        "alert_target": "Target IQD",
+        "active_alerts": "Active alerts",
+        "no_alerts": "No alerts yet",
+        "alert_hit": "Alert triggered",
+        "language_setting": "App language",
+        "theme_mode": "Theme mode",
+        "light": "Light",
+        "dark": "Dark",
     },
     "ar": {
         "title": "الدينار العراقي مباشر",
@@ -79,6 +93,20 @@ TEXT = {
         "below": "السوق أقل من السعر المستهدف",
         "footer": "الأسعار معلوماتية وقد تختلف حسب مكتب الصرافة والسبريد والتوقيت.",
         "stats": "الإحصائيات",
+        "more": "المزيد",
+        "alerts": "التنبيهات",
+        "create_alert": "إنشاء تنبيه",
+        "alert_type": "نوع التنبيه",
+        "above_alert": "فوق السعر",
+        "below_alert": "تحت السعر",
+        "alert_target": "السعر المستهدف IQD",
+        "active_alerts": "التنبيهات النشطة",
+        "no_alerts": "لا توجد تنبيهات",
+        "alert_hit": "تم تفعيل التنبيه",
+        "language_setting": "لغة التطبيق",
+        "theme_mode": "وضع المظهر",
+        "light": "فاتح",
+        "dark": "داكن",
     },
     "ku": {
         "title": "دیناری عێراقی ڕاستەوخۆ",
@@ -109,6 +137,20 @@ TEXT = {
         "below": "بازاڕ لە نرخی ئامانج خوارترە",
         "footer": "نرخەکان زانیاریین و دەتوانن بە پێی صرافە و کات جیاواز بن.",
         "stats": "ئامارەکان",
+        "more": "زیاتر",
+        "alerts": "ئاگادارکردنەوە",
+        "create_alert": "دروستکردنی ئاگادارکردنەوە",
+        "alert_type": "جۆری ئاگادارکردنەوە",
+        "above_alert": "لەسەر نرخ",
+        "below_alert": "لەژێر نرخ",
+        "alert_target": "نرخی ئامانج IQD",
+        "active_alerts": "ئاگادارکردنەوە چالاکەکان",
+        "no_alerts": "هێشتا ئاگادارکردنەوە نییە",
+        "alert_hit": "ئاگادارکردنەوە کارا بوو",
+        "language_setting": "زمانی ئەپ",
+        "theme_mode": "دۆخی ڕووکار",
+        "light": "ڕووناک",
+        "dark": "تاریک",
     },
 }
 
@@ -153,6 +195,9 @@ section[data-testid="stSidebar"]{background:#fff!important;border-right:1px soli
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{background:white;border:1px solid var(--line);border-radius:18px;padding:16px}.stat .label{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase}.stat .num{font-size:24px;font-weight:900;white-space:nowrap;color:var(--text)}
 .chart-card{background:linear-gradient(180deg,#fff,#f8fbff);border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:0 12px 34px rgba(15,23,42,.07);}
 .footer{text-align:center;color:var(--muted);font-size:13px;padding:30px 0;}
+.more-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;}
+.alert-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);}
+.alert-item:last-child{border-bottom:none;}
 div[data-testid="stMetricValue"]{font-weight:900!important;}
 @media(max-width:768px){
   .block-container{padding:0 .8rem 1.5rem!important;}
@@ -257,6 +302,12 @@ lang_label = st.sidebar.radio("Language / اللغة / زمان", list(LANGS.key
 code = LANGS[lang_label]["code"]
 T = TEXT[code]
 
+
+if "alerts" not in st.session_state:
+    st.session_state.alerts = []
+if "theme_mode" not in st.session_state:
+    st.session_state.theme_mode = "light"
+
 latest = df.iloc[-1]
 latest_ts = pd.Timestamp(latest["Time"])
 latest_time = latest_ts.strftime("%Y-%m-%d %H:%M")
@@ -283,7 +334,7 @@ st.markdown(f"""
 
 st.markdown('<div class="main-card">', unsafe_allow_html=True)
 
-tab_convert, tab_charts, tab_history, tab_check = st.tabs([T["converter"], T["charts"], T["history"], T["price_check"]])
+tab_convert, tab_charts, tab_history, tab_check, tab_more = st.tabs([T["converter"], T["charts"], T["history"], T["price_check"], T["more"]])
 
 with tab_convert:
     c1, c2, c3 = st.columns([1, 1, 1.2])
@@ -352,6 +403,47 @@ with tab_check:
         st.warning(f"{T['above']}: {market:,.0f} IQD")
     else:
         st.success(f"{T['below']}: {target:,.0f} IQD")
+
+
+
+with tab_more:
+    st.markdown(f'<div class="section">{T["alerts"]}</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        col_a, col_b, col_c = st.columns([1,1,1])
+        with col_a:
+            alert_kind = st.selectbox(T["alert_type"], ["above", "below"], format_func=lambda x: T["above_alert"] if x=="above" else T["below_alert"])
+        with col_b:
+            alert_target = st.number_input(T["alert_target"], value=float(round(market,0)), step=100.0, key="alert_target_input")
+        with col_c:
+            st.write("")
+            st.write("")
+            if st.button(T["create_alert"], use_container_width=True, type="primary"):
+                st.session_state.alerts.append({"kind": alert_kind, "target": float(alert_target), "created": latest_time})
+
+    st.markdown(f'**{T["active_alerts"]}**')
+    if not st.session_state.alerts:
+        st.info(T["no_alerts"])
+    else:
+        for i, a in enumerate(st.session_state.alerts):
+            hit = (market >= a["target"]) if a["kind"] == "above" else (market <= a["target"])
+            label = T["above_alert"] if a["kind"] == "above" else T["below_alert"]
+            if hit:
+                st.success(f"{T['alert_hit']}: {label} {a['target']:,.0f} IQD")
+            c1, c2 = st.columns([5,1])
+            c1.markdown(f"- {label}: **{a['target']:,.0f} IQD** · {a['created']}")
+            if c2.button("✖", key=f"del_alert_{i}"):
+                st.session_state.alerts.pop(i)
+                st.rerun()
+
+    st.markdown(f'<div class="section">{T["more"]}</div>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        st.selectbox(T["language_setting"], list(LANGS.keys()), index=list(LANGS.keys()).index(lang_label), disabled=True)
+        st.caption("Use sidebar to change instantly.")
+    with c2:
+        mode = st.radio(T["theme_mode"], [T["light"], T["dark"]], horizontal=True)
+        st.session_state.theme_mode = "dark" if mode == T["dark"] else "light"
+        st.caption("Theme preference saved for this session.")
 
 st.markdown('</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="footer">{T["footer"]}</div>', unsafe_allow_html=True)
