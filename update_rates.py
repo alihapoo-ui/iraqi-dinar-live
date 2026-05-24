@@ -19,7 +19,10 @@ STRING_SESSION = os.getenv("STRING_SESSION", "")
 
 CHAT_ID = int(os.getenv("PMC_CHAT_ID", "-1001035883465"))
 
-FX_BASE_URL = "https://api.exchangerate-api.com/v4/latest"
+FX_ENDPOINTS = [
+    "https://open.er-api.com/v6/latest/USD",
+    "https://api.exchangerate-api.com/v4/latest/USD",
+]
 
 CURRENCIES = ["EUR", "GBP", "TRY", "AED", "SAR", "KWD"]
 
@@ -53,48 +56,47 @@ def get_latest_pmc_rate() -> float:
     if not API_ID or not API_HASH or not STRING_SESSION:
         raise RuntimeError("Missing Telegram credentials")
 
+    client = TelegramClient(StringSession(STRING_SESSION), API_ID, API_HASH)
     try:
-        client = TelegramClient(StringSession(STRING_SESSION), API_ID, API_HASH)
         client.connect()
+        if not client.is_user_authorized():
+            raise RuntimeError("Telegram session is not authorized")
 
         messages = client.get_messages(CHAT_ID, limit=1)
-
         if not messages:
             raise RuntimeError("No messages found in PMC market channel")
 
         message_text = messages[0].text
         rate = extract_rate_from_message(message_text)
-
         if rate is None:
             raise RuntimeError(f"Could not extract rate from message: {message_text}")
-
-        client.disconnect()
         return rate
     except Exception as e:
         raise RuntimeError(f"Failed to fetch PMC rate: {e}") from e
+    finally:
+        client.disconnect()
 
 
 def get_fx_rates() -> dict:
     """Fetch foreign exchange rates against USD."""
-    try:
-        response = requests.get(f"{FX_BASE_URL}/USD", timeout=10)
-        response.raise_for_status()
-        data = response.json()
-
-        rates = {}
-        for currency in CURRENCIES:
-            if currency in data["rates"]:
+    last_error = None
+    for endpoint in FX_ENDPOINTS:
+        try:
+            response = requests.get(endpoint, timeout=15)
+            response.raise_for_status()
+            data = response.json()
+            if "rates" not in data:
+                raise RuntimeError("Missing 'rates' in provider payload")
+            rates = {}
+            for currency in CURRENCIES:
+                if currency not in data["rates"]:
+                    raise RuntimeError(f"Missing rate for {currency}")
                 rates[currency] = data["rates"][currency]
-            else:
-                raise RuntimeError(f"Missing rate for {currency}")
-
-        if len(rates) != len(CURRENCIES):
-            missing = [c for c in CURRENCIES if c not in rates]
-            raise RuntimeError(f"Missing FX rates: {missing}")
-
-        return rates
-    except Exception as e:
-        raise RuntimeError(f"Failed to fetch FX rates: {e}") from e
+            return rates
+        except Exception as exc:
+            last_error = exc
+            continue
+    raise RuntimeError(f"Failed to fetch FX rates from all providers: {last_error}")
 
 
 def build_row(usd_rate: float, fx_rates: dict) -> dict:
