@@ -398,11 +398,12 @@ with tab_history:
 
 with tab_check:
     target = st.number_input(T["target_price"], value=float(round(market, 0)), step=250.0)
-    st.button(T["check_price"], type="primary", use_container_width=True)
-    if market >= target:
-        st.warning(f"{T['above']}: {market:,.0f} IQD")
-    else:
-        st.success(f"{T['below']}: {target:,.0f} IQD")
+    checked = st.button(T["check_price"], type="primary", use_container_width=True)
+    if checked:
+        if market >= target:
+            st.warning(f"{T['above']}: {market:,.0f} IQD")
+        else:
+            st.success(f"{T['below']}: {market:,.0f} IQD")
 
 
 
